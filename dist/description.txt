@@ -1,0 +1,13 @@
+dist/: "distribution", the compiled code/library, also named public/ or build/ (or target/ or dest/). The files meant for production or public use are usually located here.
+
+This folder should contains zipped versions of the app.
+
+
+.
+├── build                   # Compiled files (alternatively `dist`)
+├── docs                    # Documentation files (alternatively `doc`)
+├── src                     # Source files (alternatively `lib` or `app`)
+├── test                    # Automated tests (alternatively `spec` or `tests`)
+├── tools                   # Tools and utilities
+├── LICENSE
+└── README.md
