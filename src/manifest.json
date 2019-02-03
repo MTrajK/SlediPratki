@@ -4,12 +4,35 @@
     "version": "0.0.1",
     "manifest_version": 2,
 
-    "browser_action": {
-        "default_popup": "popup.html"
-    },
+    "icons": {
+        "16": "img/icon16.png",
+        "24": "img/icon24.png",
+        "32": "img/icon32.png",
+        "48": "img/icon48.png",
+        "128": "img/icon128.png"
+      },
 
+    "browser_action": {
+        "default_popup": "html/popup.html",
+        "default_icon": {
+            "16": "img/icon16.png",
+            "24": "img/icon24.png",
+            "32": "img/icon32.png",
+            "48": "img/icon48.png",
+            "128": "img/icon128.png"
+          },
+        "default_title": "Следи Пратки"
+    },
+    
     "permissions": [
+        "https://posta.mk/*",
         "storage",
+        "contextMenus",
         "notifications"
-    ]
+    ],
+
+    "background": {
+        "scripts": ["js/background.js"],
+        "persistent": false
+       },
   }
