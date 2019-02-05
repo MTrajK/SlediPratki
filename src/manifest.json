@@ -32,7 +32,7 @@
     ],
 
     "background": {
-        "scripts": ["js/background.js"],
+        "scripts": ["js/common.js, js/background.js"],
         "persistent": false
-       },
+    }
   }
