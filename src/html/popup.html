@@ -1,17 +1,74 @@
 <!DOCTYPE html>
 
 <html>
-    <head>
-        <meta charset="utf-8"/>
-        <!--This title will be shown when the mouse is over the extension's icon in the toolbar.-->
-        <!--Not sure about this!-->
-        <title>Следи пратки во Македонија</title>
 
-        <link rel="stylesheet" type="text/css" href="../css/popup.css">
-    </head>
-    <body>
+<head>
+    <meta charset="utf-8" />
+    <!--This title will be shown when the mouse is over the extension's icon in the toolbar.-->
+    <!--Not sure about this!-->
+    <title>Следи пратки во Македонија</title>
 
-        <script src="../js/common.js"></script>
-        <script src="../js/popup.js"></script>
-    </body>
+    <link rel="stylesheet" type="text/css" href="../css/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/popup.css">
+</head>
+
+<body>
+
+    <div id="app" class="row">
+
+        <div class="col s12">
+            <ul class="tabs" id="tabs">
+                <li class="tab col s4"><a href="#activeView">Активни</a></li>
+                <li class="tab col s4"><a href="#archivedView">Архивирани</a></li>
+                <li class="tab col s4"><a href="#optionsView">Подесувања</a></li>
+            </ul>
+        </div>
+        <div id="activeView" class="col s12">
+
+            <!-- Active VIEW -->
+            <ul class="collapsible" id="activeCollapsible">
+                <li v-for="(activePackage, index) in activePackages">
+                    <div class="collapsible-header">{{activePackage.header}}</div>
+                    <div class="collapsible-body"><span>{{index}}</span>
+                        <a class="waves-effect waves-light btn-small" v-on:click="deleteActivePackage(index)">Избриши</a>
+                        <a class="waves-effect waves-light btn-small" v-on:click="archiveActivePackage(index)">Архивирај</a>
+                    </div>
+                </li>
+            </ul>
+            <input v-model="message">
+            <a class="waves-effect waves-light btn-small" v-on:click="addNewActivePackage">Додади</a>
+            <!-- Active VIEW -->
+
+        </div>
+        <div id="archivedView" class="col s12">
+
+            <!-- Archived VIEW -->
+            <ul class="collapsible" id="archiveCollapsible">
+                <li v-for="(archivePackage, index) in archivePackages">
+                    <div class="collapsible-header">{{archivePackage.header}}</div>
+                    <div class="collapsible-body"><span>{{index}}</span>
+                        <a class="waves-effect waves-light btn-small" v-on:click="deleteArchivePackage(index)">Избриши</a>
+                        <a class="waves-effect waves-light btn-small" v-on:click="activeArchivePackage(index)">Активирај</a>
+                    </div>
+                </li>
+            </ul>
+            <!-- Archived VIEW -->
+
+        </div>
+        <div id="optionsView" class="col s12">
+
+            <!-- Settings VIEW -->
+            <!-- Settings VIEW -->
+
+        </div>
+    </div>
+
+    <script src="../js/materialize.min.js"></script>
+    <script src="../js/axios.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/vue.js"></script>    <!-- Delete this, this is only for debugging -->
+    <!--<script src="../js/vue.min.js"></script>-->
+    <script src="../js/popup.js"></script>
+</body>
+
 </html>

@@ -23,14 +23,11 @@
     },
     
     "permissions": [
-        "https://posta.mk/*",
+        "https://posta.com.mk/*",
         "storage",
         "contextMenus",
         "notifications"
     ],
 
-    "background": {
-        "scripts": ["js/common.js, js/background.js"],
-        "persistent": false
-    }
+    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
   }
