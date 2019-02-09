@@ -4,31 +4,34 @@
 
 <head>
     <meta charset="utf-8" />
-    <!--This title will be shown when the mouse is over the extension's icon in the toolbar.-->
-    <!--Not sure about this!-->
     <title>Следи пратки во Македонија</title>
 
     <link rel="stylesheet" type="text/css" href="../css/normalize.css">
-    <link rel="stylesheet" type="text/css" href="../css/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/google_icon_font.css">
+    <!--<link rel="stylesheet" type="text/css" href="../css/materialize.min.css">-->
+    <link rel="stylesheet" type="text/css" href="../css/materialize.css">
     <link rel="stylesheet" type="text/css" href="../css/popup.css">
 </head>
 
 <body>
 
-    <div id="app" class="row">
+    <div id="app">
 
-        <div>
+        <!-- NAVBAR -->
+        <div class="row">
             <ul class="tabs z-depth-2 tabs-fixed-width" id="tabs">
                 <li class="tab col s4"><a href="#activeView">Активни</a></li>
-                <li class="tab col s4"><a href="#archivedView">Архивирани</a></li>
-                <li class="tab col s4"><a href="#optionsView">Подесувања</a></li>
+                <li class="tab col s4"><a href="#archivedView">Архива</a></li>
+                <li class="tab col s4"><a href="#optionsView">Подесување</a></li>
             </ul>
         </div>
 
-        <div class="views">
+        <!-- CONTENT -->
+        <div class="row views">
+
+            <!-- Active VIEW -->
             <div id="activeView" class="col s12">
 
-                <!-- Active VIEW -->
                 <ul class="collapsible" id="activeCollapsible">
                     <li v-for="(activePackage, index) in activePackages">
                         <div class="collapsible-header">{{activePackage.header}}</div>
@@ -39,13 +42,24 @@
                     </li>
                 </ul>
                 <input v-model="message">
-                <a class="waves-effect waves-light btn-small" v-on:click="addNewActivePackage">Додади</a>
-                <!-- Active VIEW -->
+
+                <div id="floatingButton" class="fixed-action-btn">
+                    <a class="btn-floating my-red">
+                        <i class="large material-icons">menu</i>
+                    </a>
+                    <ul>
+                        <li><a class="btn-floating waves-effect waves-light btn-small my-red" v-on:click="addNewActivePackage"><i
+                                    class="material-icons">add</i></a></li>
+                        <li><a class="btn-floating waves-effect waves-light btn-small my-red"><i class="material-icons">refresh</i></a></li>
+                    </ul>
+                </div>
 
             </div>
+            <!-- Active VIEW -->
+
+            <!-- Archived VIEW -->
             <div id="archivedView" class="col s12">
 
-                <!-- Archived VIEW -->
                 <ul class="collapsible" id="archiveCollapsible">
                     <li v-for="(archivePackage, index) in archivePackages">
                         <div class="collapsible-header">{{archivePackage.header}}</div>
@@ -55,23 +69,38 @@
                         </div>
                     </li>
                 </ul>
-                <!-- Archived VIEW -->
 
             </div>
+            <!-- Archived VIEW -->
+
+            <!-- Settings VIEW -->
             <div id="optionsView" class="col s12">
 
-                <!-- Settings VIEW -->
-                <!-- Settings VIEW -->
+            </div>
+            <!-- Settings VIEW -->
 
+        </div>
+
+        <!-- FOOTER -->
+        <div class="row my-footer">
+            <div class="col s5">
+                <span class="name-text">Следи Пратки</span>
+            </div>
+            <div class="col s2 center-align">
+                <img class="footer-logo" src="../img/logo.svg">
+            </div>
+            <div class="col s5 right-align">
+                <a class="post-url" href="https://www.posta.com.mk/" target="_blank">www.posta.com.mk</a>
             </div>
         </div>
     </div>
 
-    <script src="../js/materialize.min.js"></script>
+    <!--<script src="../js/materialize.min.js"></script>-->
+    <script src="../js/materialize.js"></script> <!-- Delete this, this is only for debugging -->
     <script src="../js/axios.min.js"></script>
     <script src="../js/common.js"></script>
-    <script src="../js/vue.js"></script> <!-- Delete this, this is only for debugging -->
     <!--<script src="../js/vue.min.js"></script>-->
+    <script src="../js/vue.js"></script> <!-- Delete this, this is only for debugging -->
     <script src="../js/popup.js"></script>
 </body>
 

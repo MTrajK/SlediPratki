@@ -1,19 +1,25 @@
 var app = new Vue({
     el: '#app',
     data: {
+        tabsInstance: undefined,
         activeInstance: undefined,
         archiveInstance: undefined,
-        tabsInstance: undefined,
+        floatingButtonInstance: undefined,
         message: "Add something",
         activePackages: [],
         archivePackages: []
     },
     mounted: function () {
         this.$nextTick(function () {
-            this.activeInstance = M.Collapsible.init(this.$el.querySelector("#activeCollapsible"));
-            this.archiveInstance = M.Collapsible.init(this.$el.querySelector("#archiveCollapsible"));
+            // init materialize components
+            // tabs
             this.tabsInstance = M.Tabs.init(this.$el.querySelector("#tabs"));
             this.tabsInstance.select("activeView");
+            // collapsible
+            this.activeInstance = M.Collapsible.init(this.$el.querySelector("#activeCollapsible"));
+            this.archiveInstance = M.Collapsible.init(this.$el.querySelector("#archiveCollapsible"));
+            // floating button
+            this.floatingButtonInstance = M.FloatingActionButton.init(this.$el.querySelector("#floatingButton"));
         })
     },
     methods: {
