@@ -29,41 +29,61 @@
         <!-- CONTENT -->
         <div class="row views">
 
-            <!-- Active VIEW -->
+            <!-- ACTIVE VIEW -->
             <div id="activeView" class="col s12">
 
                 <ul class="collapsible" id="activeCollapsible">
                     <li v-for="(activePackage, index) in activePackages">
-                        <div class="collapsible-header">{{activePackage.header}}</div>
-                        <div class="collapsible-body"><span>{{index}}</span>
+                        <div class="collapsible-header">
+                            <div class="col s1-5">
+                                <i class="material-icons">{{activePackage.status}}</i>
+                            </div>
+                            <div class="col s9 middle-allign">
+                                <p class="collapsible-header-text">{{activePackage.trackingNumber}}</p>
+                            </div>
+                            <div class="col s1-5 right-align badge-padding">
+                                <span class="my-badge">{{activePackage.notifications}}</span>
+                            </div>
+                        </div>
+                        <div class="collapsible-body">
+                            <span>{{activePackage.packageDescription}}</span>
                             <a class="waves-effect waves-light btn-small" v-on:click="deleteActivePackage(index)">Избриши</a>
                             <a class="waves-effect waves-light btn-small" v-on:click="archiveActivePackage(index)">Архивирај</a>
                         </div>
                     </li>
                 </ul>
-                <input v-model="message">
 
                 <div id="floatingButton" class="fixed-action-btn">
                     <a class="btn-floating my-red">
                         <i class="large material-icons">menu</i>
                     </a>
                     <ul>
-                        <li><a class="btn-floating waves-effect waves-light btn-small my-red" v-on:click="addNewActivePackage"><i
+                        <li><a class="btn-floating waves-effect waves-light btn-small my-red modal-trigger" data-target="addModal"><i
                                     class="material-icons">add</i></a></li>
                         <li><a class="btn-floating waves-effect waves-light btn-small my-red"><i class="material-icons">refresh</i></a></li>
                     </ul>
                 </div>
 
             </div>
-            <!-- Active VIEW -->
+            <!-- ACTIVE VIEW -->
 
-            <!-- Archived VIEW -->
+            <!-- ARCHIVED VIEW -->
             <div id="archivedView" class="col s12">
 
                 <ul class="collapsible" id="archiveCollapsible">
                     <li v-for="(archivePackage, index) in archivePackages">
-                        <div class="collapsible-header">{{archivePackage.header}}</div>
-                        <div class="collapsible-body"><span>{{index}}</span>
+                        <div class="collapsible-header">
+                            <div class="col s1-5">
+                                <i class="material-icons">{{archivePackage.status}}</i>
+                            </div>
+                            <div class="col s9 middle-allign">
+                                <p class="collapsible-header-text">{{archivePackage.trackingNumber}}</p>
+                            </div>
+                            <div class="col s1-5 right-align badge-padding">
+                                <span class="my-badge">{{archivePackage.notifications}}</span>
+                            </div>
+                        </div>
+                        <div class="collapsible-body"><span>{{archivePackage.packageDescription}}</span>
                             <a class="waves-effect waves-light btn-small" v-on:click="deleteArchivePackage(index)">Избриши</a>
                             <a class="waves-effect waves-light btn-small" v-on:click="activeArchivePackage(index)">Активирај</a>
                         </div>
@@ -71,13 +91,13 @@
                 </ul>
 
             </div>
-            <!-- Archived VIEW -->
+            <!-- ARCHIVED VIEW -->
 
-            <!-- Settings VIEW -->
+            <!-- SETTINGS VIEW -->
             <div id="optionsView" class="col s12">
 
             </div>
-            <!-- Settings VIEW -->
+            <!-- SETTINGS VIEW -->
 
         </div>
 
@@ -93,6 +113,26 @@
                 <a class="post-url" href="https://www.posta.com.mk/" target="_blank">www.posta.com.mk</a>
             </div>
         </div>
+
+        <!-- MODALS -->
+        <!-- ADD PACKAGE MODAL -->
+        <div id="addModal" class="modal bottom-sheet">
+            <div class="modal-content">
+                <div class="add-text">Додади нова пратка</div>
+                <div class="input-field">
+                    <input id="tracking_number" type="text" class="validate" v-model="trackingNumber">
+                    <label id="tracking_number_label" class="active" for="tracking_number">Број на пратка</label>
+                </div>
+                <div class="input-field">
+                    <input id="package_description" type="text" class="validate" v-model="packageDescription">
+                    <label id="package_description_label" class="active" for="package_description">Опис на пратка</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a class="modal-close waves-effect waves-green btn-flat" v-on:click="addNewActivePackage">Додади</a>
+            </div>
+        </div>
+        <!-- ADD PACKAGE MODAL -->
     </div>
 
     <!--<script src="../js/materialize.min.js"></script>-->

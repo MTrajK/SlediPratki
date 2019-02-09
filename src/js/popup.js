@@ -5,13 +5,14 @@ var app = new Vue({
         activeInstance: undefined,
         archiveInstance: undefined,
         floatingButtonInstance: undefined,
-        message: "Add something",
+        addModalInstance: undefined,
+        trackingNumber: "",
+        packageDescription: "",
         activePackages: [],
         archivePackages: []
     },
     mounted: function () {
-        this.$nextTick(function () {
-            // init materialize components
+        this.$nextTick(function () { // init materialize components
             // tabs
             this.tabsInstance = M.Tabs.init(this.$el.querySelector("#tabs"));
             this.tabsInstance.select("activeView");
@@ -20,6 +21,8 @@ var app = new Vue({
             this.archiveInstance = M.Collapsible.init(this.$el.querySelector("#archiveCollapsible"));
             // floating button
             this.floatingButtonInstance = M.FloatingActionButton.init(this.$el.querySelector("#floatingButton"));
+            // add package modal instance
+            this.addModalInstance = M.Modal.init(this.$el.querySelector("#addModal"));
         })
     },
     methods: {
@@ -37,23 +40,30 @@ var app = new Vue({
         },
         addNewActivePackage: function () {
             this.activePackages.push({
-                header: this.message,
-                body: "asad"
+                trackingNumber: this.trackingNumber,
+                packageDescription: this.packageDescription,
+                status: "local_shipping",
+                notifications: 3
             });
-            this.message = "";
+
+            this.trackingNumber = "";
+            this.packageDescription = "";
+            
+            // update input field
+            this.$el.querySelector("#tracking_number").classList.remove("valid");
+            this.$el.querySelector("#tracking_number").classList.remove("invalid");
+            this.$el.querySelector("#tracking_number_label").classList.remove("active");
+
+            this.$el.querySelector("#package_description").classList.remove("valid");
+            this.$el.querySelector("#package_description").classList.remove("invalid");
+            this.$el.querySelector("#package_description_label").classList.remove("active");
         },
         archiveActivePackage: function (index) {
-            this.archivePackages.push({
-                header: this.activePackages[index].header,
-                body: this.activePackages[index].body
-            });
+            this.archivePackages.push(this.activePackages[index]);
             this.deleteActivePackage(index);
         },
         activeArchivePackage: function (index) {
-            this.activePackages.push({
-                header: this.archivePackages[index].header,
-                body: this.archivePackages[index].body
-            });
+            this.activePackages.push(this.archivePackages[index]);
             this.deleteArchivePackage(index);
         }
     }
