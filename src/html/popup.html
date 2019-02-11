@@ -19,7 +19,7 @@
 
         <!-- NAVBAR -->
         <div class="row">
-            <ul class="tabs z-depth-2 tabs-fixed-width" id="tabs">
+            <ul class="tabs z-depth-2 tabs-fixed-width z-index-hight" id="tabs">
                 <li class="tab col s4"><a href="#activeView">Активни</a></li>
                 <li class="tab col s4"><a href="#archivedView">Архива</a></li>
                 <li class="tab col s4"><a href="#optionsView">Подесување</a></li>
@@ -58,7 +58,7 @@
                         <i class="large material-icons">menu</i>
                     </a>
                     <ul>
-                        <li><a class="btn-floating waves-effect waves-light btn-small my-red modal-trigger" data-target="addModal"><i
+                        <li><a class="btn-floating waves-effect waves-light btn-small my-red" v-on:click="openAddModal"><i
                                     class="material-icons">add</i></a></li>
                         <li><a class="btn-floating waves-effect waves-light btn-small my-red"><i class="material-icons">refresh</i></a></li>
                     </ul>
@@ -164,7 +164,7 @@
         </div>
 
         <!-- FOOTER -->
-        <div class="row my-footer">
+        <div class="row my-footer z-index-hight">
             <div class="col s5">
                 <span class="name-text">Следи Пратки</span>
             </div>
@@ -182,16 +182,17 @@
             <div class="modal-content">
                 <div class="add-text">Додади нова пратка</div>
                 <div class="input-field">
-                    <input id="tracking_number" type="text" class="validate" v-model="trackingNumber">
+                    <input id="tracking_number" type="text" class="validate" v-model="addNewPackage.trackingNumber">
                     <label id="tracking_number_label" class="active" for="tracking_number">Број на пратка</label>
                 </div>
                 <div class="input-field">
-                    <input id="package_description" type="text" class="validate" v-model="packageDescription">
-                    <label id="package_description_label" class="active" for="package_description">Опис на пратка</label>
+                    <input id="package_description" type="text" class="validate" v-model="addNewPackage.packageDescription">
+                    <label id="package_description_label" class="active" for="package_description">Опис на пратка (опционално)</label>
                 </div>
             </div>
             <div class="modal-footer">
-                <a class="modal-close waves-effect waves-green btn-flat" v-on:click="addNewActivePackage">Додади</a>
+                <a class="modal-close waves-effect waves-red btn-flat">Откажи</a>
+                <a class="waves-effect waves-green btn-flat" v-on:click="addNewActivePackage">Додади</a>
             </div>
         </div>
         <!-- ADD PACKAGE MODAL -->

@@ -99,6 +99,10 @@ html, body {
     line-height: 26px;
 }
 
+.z-index-hight {
+    z-index: 10;
+}
+
 
 /* SCROLLBAR */
 ::-webkit-scrollbar {
