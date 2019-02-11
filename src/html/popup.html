@@ -34,11 +34,11 @@
 
                 <ul class="collapsible" id="activeCollapsible">
                     <li v-for="(activePackage, index) in activePackages">
-                        <div class="collapsible-header">
+                        <div class="collapsible-header waves-effect waves-dark">
                             <div class="col s1-5">
                                 <i class="material-icons">{{activePackage.status}}</i>
                             </div>
-                            <div class="col s9 middle-allign">
+                            <div class="col s9-new middle-allign">
                                 <p class="collapsible-header-text">{{activePackage.trackingNumber}}</p>
                             </div>
                             <div class="col s1-5 right-align badge-padding">
@@ -72,11 +72,11 @@
 
                 <ul class="collapsible" id="archiveCollapsible">
                     <li v-for="(archivePackage, index) in archivePackages">
-                        <div class="collapsible-header">
+                        <div class="collapsible-header waves-effect waves-dark">
                             <div class="col s1-5">
                                 <i class="material-icons">{{archivePackage.status}}</i>
                             </div>
-                            <div class="col s9 middle-allign">
+                            <div class="col s9-new middle-allign">
                                 <p class="collapsible-header-text">{{archivePackage.trackingNumber}}</p>
                             </div>
                             <div class="col s1-5 right-align badge-padding">
@@ -95,6 +95,68 @@
 
             <!-- SETTINGS VIEW -->
             <div id="optionsView" class="col s12">
+
+                <div class="row">
+
+                    <div class="col s8">
+                        <p>Автоматско обнувување</p>
+                    </div>
+                    <div class="col s4">
+                        <div class="switch">
+                            <label>
+                                <input type="checkbox">
+                                <span class="lever"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col s7">
+                        <p>Интервал на обновување:</p>
+                    </div>
+                    <div class="input-field col s5">
+                        <select id="refreshInterval">
+                            <option value="1" selected>1 час</option>
+                            <option value="2">2 часа</option>
+                            <option value="4">4 часа</option>
+                            <option value="6">6 часа</option>
+                            <option value="12">12 часа</option>
+                            <option value="24">24 часа</option>
+                        </select>
+                    </div>
+
+                    <div class="col s8">
+                        <p>Нотификации</p>
+                    </div>
+                    <div class="col s4">
+                        <div class="switch">
+                            <label>
+                                <input type="checkbox">
+                                <span class="lever"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col s9">
+                        <p>Максимален број на активни пратки:</p>
+                    </div>
+                    <div class="col s3">
+                        <span>20</span>
+                    </div>
+
+                    <div class="col s9">
+                        <p>Максимален број на архвирани пратки:</p>
+                    </div>
+                    <div class="col s3">
+                        <span>15</span>
+                    </div>
+
+                    <div class="col s12">
+                        <p>Направено од <a>Мето Трајковски</a></p>
+                        <p>Користејќи го сервисот за следење на пратки од <a>www.posta.com.mk</a></p>
+                    </div>
+
+                </div>
+
 
             </div>
             <!-- SETTINGS VIEW -->

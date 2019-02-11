@@ -5,6 +5,7 @@ var app = new Vue({
         activeInstance: undefined,
         archiveInstance: undefined,
         floatingButtonInstance: undefined,
+        refreshIntervalInstance: undefined,
         addModalInstance: undefined,
         trackingNumber: "",
         packageDescription: "",
@@ -21,7 +22,9 @@ var app = new Vue({
             this.archiveInstance = M.Collapsible.init(this.$el.querySelector("#archiveCollapsible"));
             // floating button
             this.floatingButtonInstance = M.FloatingActionButton.init(this.$el.querySelector("#floatingButton"));
-            // add package modal instance
+            // refresh interval
+            this.refreshIntervalInstance = M.FormSelect.init(this.$el.querySelector("#refreshInterval"));
+            // add package modal
             this.addModalInstance = M.Modal.init(this.$el.querySelector("#addModal"));
         })
     },
