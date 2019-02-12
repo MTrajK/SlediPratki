@@ -32,8 +32,8 @@
             <!-- ACTIVE VIEW -->
             <div id="activeView" class="col s12">
 
-                <div v-show="!activePackages.length">
-                    Нема активни пратки!
+                <div class="no-packages" v-show="!activePackages.length">
+                    НЕМА АКТИВНИ ПРАТКИ
                 </div>
 
                 <ul class="collapsible" id="activeCollapsible" v-show="activePackages.length">
@@ -85,8 +85,8 @@
             <!-- ARCHIVED VIEW -->
             <div id="archivedView" class="col s12">
 
-                <div v-show="!archivePackages.length">
-                    Нема архивирани пратки!
+                <div class="no-packages" v-show="!archivePackages.length">
+                    НЕМА АРХИВИРАНИ ПРАТКИ
                 </div>
 
                 <ul class="collapsible" id="archiveCollapsible" v-show="archivePackages.length">
@@ -122,12 +122,12 @@
             <!-- SETTINGS VIEW -->
             <div id="optionsView" class="col s12">
 
-                <div class="row">
+                <div class="row settings-view">
 
-                    <div class="col s8">
-                        <p>Автоматско обнувување</p>
+                    <div class="col s8 settings-text settings-margin">
+                        Автоматско обновување
                     </div>
-                    <div class="col s4">
+                    <div class="col s4 settings-margin">
                         <div class="switch">
                             <label>
                                 <input type="checkbox" v-model="settings.autoRefresh">
@@ -136,10 +136,10 @@
                         </div>
                     </div>
 
-                    <div class="col s7">
-                        <p>Интервал на обновување:</p>
+                    <div class="col s8 settings-text settings-margin settings-interval">
+                        Интервал на обновување:
                     </div>
-                    <div class="input-field col s5">
+                    <div class="input-field col s4 settings-margin">
                         <select id="refreshInterval" v-model="settings.refreshInterval">
                             <option value="1">1 час</option>
                             <option value="2">2 часа</option>
@@ -150,10 +150,10 @@
                         </select>
                     </div>
 
-                    <div class="col s8">
-                        <p>Нотификации</p>
+                    <div class="col s8 settings-text settings-margin">
+                        Нотификации
                     </div>
-                    <div class="col s4">
+                    <div class="col s4 settings-margin">
                         <div class="switch">
                             <label>
                                 <input type="checkbox" v-model="settings.notifications">
@@ -162,23 +162,25 @@
                         </div>
                     </div>
 
-                    <div class="col s9">
-                        <p>Максимален број на активни пратки:</p>
+                    <div class="col s9 settings-text settings-margin">
+                        Максимум активни пратки:
                     </div>
-                    <div class="col s3">
-                        <span>{{ settings.maxActivePackages }}</span>
-                    </div>
-
-                    <div class="col s9">
-                        <p>Максимален број на архвирани пратки:</p>
-                    </div>
-                    <div class="col s3">
-                        <span>{{ settings.maxArchivePackages }}</span>
+                    <div class="col s3 settings-num">
+                        {{ settings.maxActivePackages }}
                     </div>
 
-                    <div class="col s12">
-                        <p>Направено од <a>Мето Трајковски</a></p>
-                        <p>Користејќи го сервисот за следење пратки од <a>www.posta.com.mk</a></p>
+                    <div class="col s9 settings-text settings-margin">
+                        Максимум архвирани пратки:
+                    </div>
+                    <div class="col s3 settings-num">
+                        {{ settings.maxArchivePackages }}
+                    </div>
+
+                    <div class="col s12 settings-desc settings-margin">
+                        <p>Направено од <a class="settings-url" href="https://www.linkedin.com/in/mtrajk/" target="_blank">Мето
+                                Трајковски</a></p>
+                        <p>Користејќи го сервисот за следење пратки од <a class="settings-url" href="https://www.posta.com.mk"
+                                target="_blank">www.posta.com.mk</a></p>
                     </div>
 
                 </div>

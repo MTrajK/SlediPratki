@@ -12,6 +12,9 @@ White
 - dark white (light yellow): 	#fff9c4		YELLOW 100		(up part of tape)
 
 Red								#ff5252		RED A200		(pin/placeholder)
+
+Background text (gray):                     #50565d
+Collapsible header & modal dialogs text:    #343434
 */
 
 /* EXISTING HTML ELEMENTS */
@@ -139,6 +142,53 @@ html, body {
 
 .spinner-yellow-only {
     border-color: #fbc02d;
+}
+
+.no-packages {
+    width: 100%;
+    font-size: 21px;
+    color: #50565d;
+    margin-top: 170px;
+    text-align: center;
+}
+
+.settings-view {
+    padding: 10px 15px;
+}
+
+.settings-num {
+    font-weight: bold;
+    font-size: 16px;
+    color: #9e9e9e;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.settings-text {
+    font-size: 14px;
+    color: #50565d;
+}
+
+.settings-interval {
+    line-height: 51px;
+}
+
+.settings-margin {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.settings-desc {
+    margin-top: 30px;
+    font-size: 16px;
+    text-align: center;
+    color: #50565d;
+    border-top: #9e9e9e 1px solid;
+}
+
+.settings-url {
+    color: #fbc02d;
+    font-weight: bold;
 }
 
 

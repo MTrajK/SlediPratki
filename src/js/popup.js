@@ -289,7 +289,7 @@ var vueApp = new Vue({
                 // close modal after getting the results from the api and writting them in storage
                 MaterializeComponents.addModal.addModalInstance.close();
             };
-            
+
             Common.getPackage(this.addNewPackage.trackingNumber, end);
         },
 
