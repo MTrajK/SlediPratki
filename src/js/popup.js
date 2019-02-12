@@ -15,7 +15,9 @@ var MaterializeComponents = {
         packageDescriptionInput: undefined,
         packageDescriptionLabel: undefined
     },
-    actionModalInstance: undefined
+    actionModalInstance: undefined,
+    addSpinner: undefined,
+    mainSpinner: undefined
 };
 
 var vueApp = new Vue({
@@ -77,6 +79,15 @@ var vueApp = new Vue({
             });
             MaterializeComponents.editModal.packageDescriptionInput = this.$el.querySelector("#edit_package_description");
             MaterializeComponents.editModal.packageDescriptionLabel = this.$el.querySelector("#edit_package_description_label");
+
+            // add spinner
+            MaterializeComponents.addSpinner = this.$el.querySelector("#add_spinner");
+
+            // remove the main spiner after loading the whole info and init all components
+            MaterializeComponents.mainSpinner = this.$el.querySelector("#main_spinner");
+            setTimeout(function (){
+                MaterializeComponents.mainSpinner.style.display = "none";
+            }, 1500);
         })
     },
     watch: {
@@ -235,6 +246,9 @@ var vueApp = new Vue({
             MaterializeComponents.addModal.trackingNumberLabel.classList.remove("active");
             MaterializeComponents.addModal.packageDescriptionLabel.classList.remove("active");
 
+            // remove add spinner
+            MaterializeComponents.addSpinner.style.display = "none";
+
             // open modal
             MaterializeComponents.addModal.addModalInstance.open();
 
@@ -242,6 +256,9 @@ var vueApp = new Vue({
             MaterializeComponents.addModal.trackingNumberInput.focus();
         },
         addNewActivePackage: function () {
+            // add add spinner
+            MaterializeComponents.addSpinner.style.display = "block";
+
             // add the new package
             this.activePackages.push({
                 trackingNumber: this.addNewPackage.trackingNumber,
@@ -251,14 +268,16 @@ var vueApp = new Vue({
                 lastRefresh: Common.getDateTime()
             });
 
+            // open the last added package
             var latestPackage = this.activePackages.length - 1;
             MaterializeComponents.addModal.addModalInstance.options.onCloseEnd = function () {
-                // open the latest package
                 MaterializeComponents.activeInstance.open(latestPackage);
             };
 
-            // close modal
-            MaterializeComponents.addModal.addModalInstance.close();
+            // close modal after getting the results from the api and writting them in storage
+            setTimeout(function (){ 
+                MaterializeComponents.addModal.addModalInstance.close();
+            }, 1000);
         },
 
 

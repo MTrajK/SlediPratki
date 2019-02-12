@@ -202,6 +202,25 @@
             </div>
         </div>
 
+        <!-- MAIN SPINNER -->
+        <div id="main_spinner" class="spinner-overlay">
+            <img class="main-spinner-logo" src="../img/logo.svg">
+            <div class="preloader-wrapper active main-spinner">
+                <div class="spinner-layer spinner-yellow-only">
+                    <div class="circle-clipper left">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="gap-patch">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="circle-clipper right">
+                        <div class="circle"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- MAIN SPINNER -->
+
         <!-- MODALS -->
         <!-- ADD PACKAGE MODAL -->
         <div id="addModal" class="modal bottom-sheet">
@@ -221,6 +240,27 @@
                 <a class="modal-close waves-effect waves-red btn-flat">Откажи</a>
                 <a class="waves-effect waves-green btn-flat" v-on:click="addNewActivePackage" v-bind:class="{ disabled: disableAdding }">Додади</a>
             </div>
+
+            <!-- ADD SPINNER -->
+            
+            <div id="add_spinner" class="spinner-overlay">
+                <div class="preloader-wrapper active add-spinner">
+                    <div class="spinner-layer spinner-yellow-only">
+                        <div class="circle-clipper left">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="gap-patch">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="circle-clipper right">
+                            <div class="circle"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ADD SPINNER -->
+
         </div>
         <!-- ADD PACKAGE MODAL -->
         <!-- EDIT PACKAGE MODAL -->
