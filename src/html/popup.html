@@ -32,14 +32,19 @@
             <!-- ACTIVE VIEW -->
             <div id="activeView" class="col s12">
 
-                <ul class="collapsible" id="activeCollapsible">
+                <div v-show="!activePackages.length">
+                    Нема активни пратки!
+                </div>
+
+                <ul class="collapsible" id="activeCollapsible" v-show="activePackages.length">
                     <li v-for="(activePackage, index) in activePackages">
                         <div class="collapsible-header waves-effect waves-dark" v-on:click="removeNotifications(index)">
                             <div class="col s1-5-new">
                                 <i class="material-icons">{{activePackage.status}}</i>
                             </div>
                             <div class="col middle-allign" v-bind:class="[ activePackage.notifications ? 's9-new' : 's10-5-new' ]">
-                                <p class="collapsible-header-text">{{activePackage.packageDescription.length ? activePackage.packageDescription : activePackage.trackingNumber}}</p>
+                                <p class="collapsible-header-text">{{activePackage.packageDescription.length ?
+                                    activePackage.packageDescription : activePackage.trackingNumber}}</p>
                             </div>
                             <div class="col s1-5-new right-align badge-padding" v-if="activePackage.notifications">
                                 <span class="my-badge">{{activePackage.notifications}}</span>
@@ -47,11 +52,13 @@
                         </div>
                         <div class="collapsible-body">
                             <p>Број на пратка: {{activePackage.trackingNumber}}</p>
-                            <p>Опис на пратка: {{activePackage.packageDescription.length ? activePackage.packageDescription : "/"}}</p>
+                            <p>Опис на пратка: {{activePackage.packageDescription.length ?
+                                activePackage.packageDescription : "/"}}</p>
                             <p>Последно обновена: {{activePackage.lastRefresh}}</p>
                             <a class="waves-effect waves-dark btn-flat" v-on:click="saveActiveStateEditModal(index)">
                                 <i class="material-icons">edit</i></a>
-                            <a class="waves-effect waves-dark btn-flat" v-on:click="saveActiveStateMoveModal(index)" v-bind:class="{ disabled: disableNewArchive }">
+                            <a class="waves-effect waves-dark btn-flat" v-on:click="saveActiveStateMoveModal(index)"
+                                v-bind:class="{ disabled: disableNewArchive }">
                                 <i class="material-icons">archive</i></a>
                             <a class="waves-effect waves-dark btn-flat" v-on:click="saveActiveStateDeleteModal(index)">
                                 <i class="material-icons">delete_forever</i></a>
@@ -64,7 +71,8 @@
                         <i class="large material-icons">menu</i>
                     </a>
                     <ul>
-                        <li><a class="btn-floating waves-effect waves-light btn-small my-red" v-on:click="openAddModal" v-bind:class="{ disabled: disableNewActive }">
+                        <li><a class="btn-floating waves-effect waves-light btn-small my-red" v-on:click="openAddModal"
+                                v-bind:class="{ disabled: disableNewActive }">
                                 <i class="material-icons">add</i></a></li>
                         <li><a class="btn-floating waves-effect waves-light btn-small my-red" v-bind:class="{ disabled: disableRefreshing }">
                                 <i class="material-icons">refresh</i></a></li>
@@ -77,23 +85,30 @@
             <!-- ARCHIVED VIEW -->
             <div id="archivedView" class="col s12">
 
-                <ul class="collapsible" id="archiveCollapsible">
+                <div v-show="!archivePackages.length">
+                    Нема архивирани пратки!
+                </div>
+
+                <ul class="collapsible" id="archiveCollapsible" v-show="archivePackages.length">
                     <li v-for="(archivePackage, index) in archivePackages">
                         <div class="collapsible-header waves-effect waves-dark">
                             <div class="col s1-5-new">
                                 <i class="material-icons">{{archivePackage.status}}</i>
                             </div>
                             <div class="col s10-5-new middle-allign">
-                                <p class="collapsible-header-text">{{archivePackage.packageDescription.length ? archivePackage.packageDescription : archivePackage.trackingNumber}}</p>
+                                <p class="collapsible-header-text">{{archivePackage.packageDescription.length ?
+                                    archivePackage.packageDescription : archivePackage.trackingNumber}}</p>
                             </div>
                         </div>
                         <div class="collapsible-body">
                             <p>Број на пратка: {{archivePackage.trackingNumber}}</p>
-                            <p>Опис на пратка: {{archivePackage.packageDescription.length ? archivePackage.packageDescription : "/"}}</p>
+                            <p>Опис на пратка: {{archivePackage.packageDescription.length ?
+                                archivePackage.packageDescription : "/"}}</p>
                             <p>Последно обновена: {{archivePackage.lastRefresh}}</p>
                             <a class="waves-effect waves-dark btn-flat" v-on:click="saveArchiveStateEditModal(index)">
                                 <i class="material-icons">edit</i></a>
-                            <a class="waves-effect waves-dark btn-flat" v-on:click="saveArchiveStateMoveModal(index)" v-bind:class="{ disabled: disableNewActive }">
+                            <a class="waves-effect waves-dark btn-flat" v-on:click="saveArchiveStateMoveModal(index)"
+                                v-bind:class="{ disabled: disableNewActive }">
                                 <i class="material-icons">unarchive</i></a>
                             <a class="waves-effect waves-dark btn-flat" v-on:click="saveArchiveStateDeleteModal(index)">
                                 <i class="material-icons">delete_forever</i></a>
@@ -213,8 +228,10 @@
             <div class="modal-content">
                 <div class="add-text">Измени го описот на пратката: {{packageState.trackingNumber}}</div>
                 <div class="input-field">
-                    <input id="edit_package_description" type="text" v-model="packageState.packageDescription" maxlength="50">
-                    <label id="edit_package_description_label" class="active" for="edit_package_description">Опис на пратка</label>
+                    <input id="edit_package_description" type="text" v-model="packageState.packageDescription"
+                        maxlength="50">
+                    <label id="edit_package_description_label" class="active" for="edit_package_description">Опис на
+                        пратка</label>
                 </div>
             </div>
             <div class="modal-footer">
