@@ -1,4 +1,4 @@
-MaterializeComponents = {
+var MaterializeComponents = {
     tabsInstance: undefined,
     activeInstance: undefined,
     archiveInstance: undefined,
@@ -8,11 +8,14 @@ MaterializeComponents = {
         addModalInstance: undefined,
         trackingNumberInput: undefined,
         trackingNumberLabel: undefined,
+        packageDescriptionLabel: undefined
+    },
+    editModal: {
+        editModalInstance: undefined,
         packageDescriptionInput: undefined,
         packageDescriptionLabel: undefined
     },
-    deletePackage: undefined,
-    movePackage: undefined
+    actionModalInstance: undefined
 };
 
 var vueApp = new Vue({
@@ -20,17 +23,15 @@ var vueApp = new Vue({
     data: {
         addNewPackage: {
             trackingNumber: "",
+            packageDescription: ""
+        },
+        packageState: {
+            action: "",
+            tab: "",
+            index: -1,
+            trackingNumber: "",
             packageDescription: "",
-        },
-        deletePackageState: {
-            index: -1,
-            trackingNumber: "",
-            tab: ""
-        },
-        movePackageState: {
-            index: -1,
-            trackingNumber: "",
-            tab: ""
+            oldPackageDescription: ""
         },
         activePackages: [],
         archivePackages: []
@@ -59,18 +60,19 @@ var vueApp = new Vue({
             });
             MaterializeComponents.addModal.trackingNumberInput = this.$el.querySelector("#tracking_number");
             MaterializeComponents.addModal.trackingNumberLabel = this.$el.querySelector("#tracking_number_label");
-            MaterializeComponents.addModal.packageDescriptionInput = this.$el.querySelector("#package_description");
             MaterializeComponents.addModal.packageDescriptionLabel = this.$el.querySelector("#package_description_label");
 
-            // delete package modal
-            MaterializeComponents.deletePackage = M.Modal.init(this.$el.querySelector("#deleteModal"), {
+            // action package modal
+            MaterializeComponents.actionModalInstance = M.Modal.init(this.$el.querySelector("#actionModal"), {
                 dismissible: false
             });
 
-            // move package modal
-            MaterializeComponents.movePackage = M.Modal.init(this.$el.querySelector("#moveModal"), {
+            // edit package modal
+            MaterializeComponents.editModal.editModalInstance = M.Modal.init(this.$el.querySelector("#editModal"), {
                 dismissible: false
             });
+            MaterializeComponents.editModal.packageDescriptionInput = this.$el.querySelector("#edit_package_description");
+            MaterializeComponents.editModal.packageDescriptionLabel = this.$el.querySelector("#edit_package_description_label");
         })
     },
     watch: {
@@ -89,27 +91,44 @@ var vueApp = new Vue({
             // disable add button if the tracking number contains less than 8 chars
             return this.addNewPackage.trackingNumber.length < 8;
         },
-        movePackageText: function () {
-            return (this.movePackageState.tab == "active") ? "Архивирај" : "Активирај";
+        actionModalText: function () {
+            return (this.packageState.action === "move") ? ((this.packageState.tab === "active") ? "Архивирај" : "Активирај") : "Избриши";
+        },
+        disableEditing: function () {
+            // disable edit button if the package description is same as the old package description
+            return this.packageState.packageDescription === this.packageState.oldPackageDescription;
         }
     },
     methods: {
 
-        
+
+        /**********************
+        **   COMMON METHODS  **
+        ***********************/
+
+        updateFromState: function () {
+            if (this.packageState.action === "move") {
+                this.movePackageFromState();
+            } else {
+                this.deletePackageFromState();
+            }
+
+            // close modal
+            MaterializeComponents.actionModalInstance.close();
+        },
+
+
         /**********************
         **   DELETE PACKAGE  **
         ***********************/
 
 
         deletePackageFromState: function () {
-            if (this.deletePackageState.tab === "active") {
-                this.deleteActivePackage(this.deletePackageState.index);
+            if (this.packageState.tab === "active") {
+                this.deleteActivePackage(this.packageState.index);
             } else {
-                this.deleteArchivePackage(this.deletePackageState.index);
+                this.deleteArchivePackage(this.packageState.index);
             }
-
-            // close modal
-            MaterializeComponents.deletePackage.close();
         },
         deleteActivePackage: function (index) {
             MaterializeComponents.activeInstance.options.outDuration = 0;
@@ -119,12 +138,13 @@ var vueApp = new Vue({
         },
         saveActiveStateDeleteModal: function (index) {
             // save which element should be deleted
-            this.deletePackageState.index = index;
-            this.deletePackageState.trackingNumber = this.activePackages[index].trackingNumber;
-            this.deletePackageState.tab = "active";
+            this.packageState.action = "delete";
+            this.packageState.tab = "active";
+            this.packageState.index = index;
+            this.packageState.trackingNumber = this.activePackages[index].trackingNumber;
 
             // open delete modal
-            MaterializeComponents.deletePackage.open();
+            MaterializeComponents.actionModalInstance.open();
         },
         deleteArchivePackage: function (index) {
             MaterializeComponents.archiveInstance.options.outDuration = 0;
@@ -134,12 +154,13 @@ var vueApp = new Vue({
         },
         saveArchiveStateDeleteModal: function (index) {
             // save which element should be deleted
-            this.deletePackageState.index = index;
-            this.deletePackageState.trackingNumber = this.archivePackages[index].trackingNumber;
-            this.deletePackageState.tab = "archive";
+            this.packageState.action = "delete";
+            this.packageState.tab = "archive";
+            this.packageState.index = index;
+            this.packageState.trackingNumber = this.archivePackages[index].trackingNumber;
 
             // open delete modal
-            MaterializeComponents.deletePackage.open();
+            MaterializeComponents.actionModalInstance.open();
         },
 
 
@@ -148,42 +169,40 @@ var vueApp = new Vue({
         *********************/
 
 
-        moveFromState: function () {
-            console.log(this.movePackageState.index);
-            if (this.movePackageState.tab === "active") {
-                this.moveActivePackage(this.movePackageState.index);
+        movePackageFromState: function () {
+            if (this.packageState.tab === "active") {
+                this.moveActivePackage(this.packageState.index);
             } else {
-                this.moveArchivePackage(this.movePackageState.index);
+                this.moveArchivePackage(this.packageState.index);
             }
-
-            // close modal
-            MaterializeComponents.movePackage.close();
         },
         moveActivePackage: function (index) {
             this.archivePackages.push(this.activePackages[index]);
             this.deleteActivePackage(index);
         },
         saveActiveStateMoveModal: function (index) {
-            // save which element should be deleted
-            this.movePackageState.index = index;
-            this.movePackageState.trackingNumber = this.activePackages[index].trackingNumber;
-            this.movePackageState.tab = "active";
+            // save which element should be moved
+            this.packageState.action = "move";
+            this.packageState.tab = "active";
+            this.packageState.index = index;
+            this.packageState.trackingNumber = this.activePackages[index].trackingNumber;
 
             // open delete modal
-            MaterializeComponents.movePackage.open();
+            MaterializeComponents.actionModalInstance.open();
         },
         moveArchivePackage: function (index) {
             this.activePackages.push(this.archivePackages[index]);
             this.deleteArchivePackage(index);
         },
         saveArchiveStateMoveModal: function (index) {
-            // save which element should be deleted
-            this.movePackageState.index = index;
-            this.movePackageState.trackingNumber = this.archivePackages[index].trackingNumber;
-            this.movePackageState.tab = "archive";
+            // save which element should be moved
+            this.packageState.action = "move";
+            this.packageState.tab = "archive";
+            this.packageState.index = index;
+            this.packageState.trackingNumber = this.archivePackages[index].trackingNumber;
 
             // open delete modal
-            MaterializeComponents.movePackage.open();
+            MaterializeComponents.actionModalInstance.open();
         },
 
 
@@ -207,6 +226,7 @@ var vueApp = new Vue({
             MaterializeComponents.addModal.trackingNumberInput.focus();
         },
         addNewActivePackage: function () {
+            // add the new package
             this.activePackages.push({
                 trackingNumber: this.addNewPackage.trackingNumber,
                 packageDescription: this.addNewPackage.packageDescription,
@@ -215,8 +235,72 @@ var vueApp = new Vue({
                 lastRefresh: Common.getDateTime()
             });
 
+            var latestPackage = this.activePackages.length - 1;
+            MaterializeComponents.addModal.addModalInstance.options.onCloseEnd = function () {
+                // open the latest package
+                MaterializeComponents.activeInstance.open(latestPackage);
+            };
+
             // close modal
             MaterializeComponents.addModal.addModalInstance.close();
+        },
+
+
+        /********************
+        **   EDIT PACKAGE  **
+        *********************/
+
+
+        editPackageFromState: function () {
+            if (this.packageState.tab === "active") {
+                this.editActivePackage();
+            } else {
+                this.editArchivePackage();
+            }
+
+            // close modal
+            MaterializeComponents.editModal.editModalInstance.close();
+        },
+        editActivePackage: function () {
+            this.activePackages[this.packageState.index].packageDescription = this.packageState.packageDescription;
+        },
+        saveActiveStateEditModal: function (index) {
+            // save which element should be edited
+            this.packageState.action = "edit";
+            this.packageState.tab = "active";
+            this.packageState.index = index;
+            this.packageState.trackingNumber = this.activePackages[index].trackingNumber;
+            this.packageState.packageDescription = this.activePackages[index].packageDescription;
+            this.packageState.oldPackageDescription = this.activePackages[index].packageDescription;
+
+            this.updateFocusAndOpenEditModal();
+        },
+        editArchivePackage: function () {
+            this.archivePackages[this.packageState.index].packageDescription = this.packageState.packageDescription;
+        },
+        saveArchiveStateEditModal: function (index) {
+            // save which element should be edited
+            this.packageState.action = "edit";
+            this.packageState.tab = "archive";
+            this.packageState.index = index;
+            this.packageState.trackingNumber = this.archivePackages[index].trackingNumber;
+            this.packageState.packageDescription = this.archivePackages[index].packageDescription;
+            this.packageState.oldPackageDescription = this.archivePackages[index].packageDescription;
+
+            this.updateFocusAndOpenEditModal();
+        },
+        updateFocusAndOpenEditModal: function () {
+            // update input field label
+            MaterializeComponents.editModal.packageDescriptionLabel.classList.remove("active");
+            if (this.packageState.packageDescription.length > 0) {
+                MaterializeComponents.editModal.packageDescriptionLabel.classList.add("active");
+            }
+
+            // open delete modal
+            MaterializeComponents.editModal.editModalInstance.open();
+
+            // focus the input field
+            MaterializeComponents.editModal.packageDescriptionInput.focus();
         }
     }
 });

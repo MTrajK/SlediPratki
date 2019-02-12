@@ -39,7 +39,7 @@
                                 <i class="material-icons">{{activePackage.status}}</i>
                             </div>
                             <div class="col s9-new middle-allign">
-                                <p class="collapsible-header-text">{{activePackage.trackingNumber}}</p>
+                                <p class="collapsible-header-text">{{activePackage.packageDescription.length != 0 ? activePackage.packageDescription : activePackage.trackingNumber}}</p>
                             </div>
                             <div class="col s1-5 right-align badge-padding">
                                 <span class="my-badge">{{activePackage.notifications}}</span>
@@ -47,9 +47,9 @@
                         </div>
                         <div class="collapsible-body">
                             <p>Број на пратка: {{activePackage.trackingNumber}}</p>
-                            <p>Опис на пратка: {{activePackage.packageDescription}}</p>
+                            <p>Опис на пратка: {{activePackage.packageDescription.length != 0 ? activePackage.packageDescription : "/"}}</p>
                             <p>Последно обновена: {{activePackage.lastRefresh}}</p>
-                            <a class="waves-effect waves-dark btn-flat" v-on:click="">
+                            <a class="waves-effect waves-dark btn-flat" v-on:click="saveActiveStateEditModal(index)">
                                 <i class="material-icons">edit</i></a>
                             <a class="waves-effect waves-dark btn-flat" v-on:click="saveActiveStateMoveModal(index)">
                                 <i class="material-icons">archive</i></a>
@@ -84,7 +84,7 @@
                                 <i class="material-icons">{{archivePackage.status}}</i>
                             </div>
                             <div class="col s9-new middle-allign">
-                                <p class="collapsible-header-text">{{archivePackage.trackingNumber}}</p>
+                                <p class="collapsible-header-text">{{archivePackage.packageDescription.length != 0 ? archivePackage.packageDescription : archivePackage.trackingNumber}}</p>
                             </div>
                             <div class="col s1-5 right-align badge-padding">
                                 <span class="my-badge">{{archivePackage.notifications}}</span>
@@ -92,9 +92,9 @@
                         </div>
                         <div class="collapsible-body">
                             <p>Број на пратка: {{archivePackage.trackingNumber}}</p>
-                            <p>Опис на пратка: {{archivePackage.packageDescription}}</p>
+                            <p>Опис на пратка: {{archivePackage.packageDescription.length != 0 ? archivePackage.packageDescription : "/"}}</p>
                             <p>Последно обновена: {{archivePackage.lastRefresh}}</p>
-                            <a class="waves-effect waves-dark btn-flat" v-on:click="">
+                            <a class="waves-effect waves-dark btn-flat" v-on:click="saveArchiveStateEditModal(index)">
                                 <i class="material-icons">edit</i></a>
                             <a class="waves-effect waves-dark btn-flat" v-on:click="saveArchiveStateMoveModal(index)">
                                 <i class="material-icons">unarchive</i></a>
@@ -166,7 +166,7 @@
 
                     <div class="col s12">
                         <p>Направено од <a>Мето Трајковски</a></p>
-                        <p>Користејќи го сервисот за следење на пратки од <a>www.posta.com.mk</a></p>
+                        <p>Користејќи го сервисот за следење пратки од <a>www.posta.com.mk</a></p>
                     </div>
 
                 </div>
@@ -211,39 +211,32 @@
             </div>
         </div>
         <!-- ADD PACKAGE MODAL -->
-        <!-- DELETE PACKAGE MODAL -->
-        <div id="deleteModal" class="modal bottom-sheet">
+        <!-- EDIT PACKAGE MODAL -->
+        <div id="editModal" class="modal bottom-sheet">
             <div class="modal-content">
-                <div class="add-text">Избриши ја пратката: {{deletePackageState.trackingNumber}} </div>
+                <div class="add-text">Измени го описот на пратката: {{packageState.trackingNumber}}</div>
+                <div class="input-field">
+                    <input id="edit_package_description" type="text" v-model="packageState.packageDescription" maxlength="50">
+                    <label id="edit_package_description_label" class="active" for="edit_package_description">Опис на пратка</label>
+                </div>
             </div>
             <div class="modal-footer">
                 <a class="modal-close waves-effect waves-red btn-flat">Откажи</a>
-                <a class="waves-effect waves-green btn-flat" v-on:click="deletePackageFromState">Избриши</a>
+                <a class="waves-effect waves-green btn-flat" v-on:click="editPackageFromState" v-bind:class="{ disabled: disableEditing }">Измени</a>
             </div>
         </div>
-        <!-- DELETE PACKAGE MODAL -->
-        <!-- MOVE PACKAGE MODAL -->
-        <div id="moveModal" class="modal bottom-sheet">
+        <!-- EDIT PACKAGE MODAL -->
+        <!-- ACTION PACKAGE MODAL -->
+        <div id="actionModal" class="modal bottom-sheet">
             <div class="modal-content">
-                <div class="add-text">{{movePackageText}} ја пратката: {{movePackageState.trackingNumber}} </div>
+                <div class="add-text">{{actionModalText}} ја пратката: {{packageState.trackingNumber}}</div>
             </div>
             <div class="modal-footer">
                 <a class="modal-close waves-effect waves-red btn-flat">Откажи</a>
-                <a class="waves-effect waves-green btn-flat" v-on:click="moveFromState">{{movePackageText}}</a>
+                <a class="waves-effect waves-green btn-flat" v-on:click="updateFromState">{{actionModalText}}</a>
             </div>
         </div>
-        <!-- MOVE PACKAGE MODAL -->
-        <!-- MOVE PACKAGE MODAL -->
-        <div id="moveModal" class="modal bottom-sheet">
-            <div class="modal-content">
-                <div class="add-text">{{movePackageText}} ја пратката: {{movePackageState.trackingNumber}} </div>
-            </div>
-            <div class="modal-footer">
-                <a class="modal-close waves-effect waves-red btn-flat">Откажи</a>
-                <a class="waves-effect waves-green btn-flat" v-on:click="moveFromState">{{movePackageText}}</a>
-            </div>
-        </div>
-        <!-- MOVE PACKAGE MODAL -->
+        <!-- ACTION PACKAGE MODAL -->
     </div>
 
     <!--<script src="../js/materialize.min.js"></script>-->
