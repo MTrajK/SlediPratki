@@ -51,7 +51,7 @@
                             <p>Последно обновена: {{activePackage.lastRefresh}}</p>
                             <a class="waves-effect waves-dark btn-flat" v-on:click="saveActiveStateEditModal(index)">
                                 <i class="material-icons">edit</i></a>
-                            <a class="waves-effect waves-dark btn-flat" v-on:click="saveActiveStateMoveModal(index)">
+                            <a class="waves-effect waves-dark btn-flat" v-on:click="saveActiveStateMoveModal(index)" v-bind:class="{ disabled: disableNewArchive }">
                                 <i class="material-icons">archive</i></a>
                             <a class="waves-effect waves-dark btn-flat" v-on:click="saveActiveStateDeleteModal(index)">
                                 <i class="material-icons">delete_forever</i></a>
@@ -64,9 +64,9 @@
                         <i class="large material-icons">menu</i>
                     </a>
                     <ul>
-                        <li><a class="btn-floating waves-effect waves-light btn-small my-red" v-on:click="openAddModal">
+                        <li><a class="btn-floating waves-effect waves-light btn-small my-red" v-on:click="openAddModal" v-bind:class="{ disabled: disableNewActive }">
                                 <i class="material-icons">add</i></a></li>
-                        <li><a class="btn-floating waves-effect waves-light btn-small my-red">
+                        <li><a class="btn-floating waves-effect waves-light btn-small my-red" v-bind:class="{ disabled: disableRefreshing }">
                                 <i class="material-icons">refresh</i></a></li>
                     </ul>
                 </div>
@@ -96,7 +96,7 @@
                             <p>Последно обновена: {{archivePackage.lastRefresh}}</p>
                             <a class="waves-effect waves-dark btn-flat" v-on:click="saveArchiveStateEditModal(index)">
                                 <i class="material-icons">edit</i></a>
-                            <a class="waves-effect waves-dark btn-flat" v-on:click="saveArchiveStateMoveModal(index)">
+                            <a class="waves-effect waves-dark btn-flat" v-on:click="saveArchiveStateMoveModal(index)" v-bind:class="{ disabled: disableNewActive }">
                                 <i class="material-icons">unarchive</i></a>
                             <a class="waves-effect waves-dark btn-flat" v-on:click="saveArchiveStateDeleteModal(index)">
                                 <i class="material-icons">delete_forever</i></a>
@@ -154,14 +154,14 @@
                         <p>Максимален број на активни пратки:</p>
                     </div>
                     <div class="col s3">
-                        <span>20</span>
+                        <span>{{ settings.MaxActivePackages }}</span>
                     </div>
 
                     <div class="col s9">
                         <p>Максимален број на архвирани пратки:</p>
                     </div>
                     <div class="col s3">
-                        <span>15</span>
+                        <span>{{ settings.MaxArchivePackages }}</span>
                     </div>
 
                     <div class="col s12">

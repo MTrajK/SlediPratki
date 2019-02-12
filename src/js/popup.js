@@ -33,6 +33,10 @@ var vueApp = new Vue({
             packageDescription: "",
             oldPackageDescription: ""
         },
+        settings: {
+            MaxActivePackages: 20,
+            MaxArchivePackages: 15
+        },
         activePackages: [],
         archivePackages: []
     },
@@ -97,6 +101,15 @@ var vueApp = new Vue({
         disableEditing: function () {
             // disable edit button if the package description is same as the old package description
             return this.packageState.packageDescription === this.packageState.oldPackageDescription;
+        },
+        disableNewActive: function () { 
+            return this.settings.MaxActivePackages === this.activePackages.length;
+        },
+        disableNewArchive: function () {
+            return this.settings.MaxArchivePackages === this.archivePackages.length; 
+        },
+        disableRefreshing: function () {
+            return this.activePackages.length === 0;
         }
     },
     methods: {
