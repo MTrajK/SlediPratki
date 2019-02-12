@@ -34,20 +34,20 @@
 
                 <ul class="collapsible" id="activeCollapsible">
                     <li v-for="(activePackage, index) in activePackages">
-                        <div class="collapsible-header waves-effect waves-dark">
-                            <div class="col s1-5">
+                        <div class="collapsible-header waves-effect waves-dark" v-on:click="removeNotifications(index)">
+                            <div class="col s1-5-new">
                                 <i class="material-icons">{{activePackage.status}}</i>
                             </div>
-                            <div class="col s9-new middle-allign">
-                                <p class="collapsible-header-text">{{activePackage.packageDescription.length != 0 ? activePackage.packageDescription : activePackage.trackingNumber}}</p>
+                            <div class="col middle-allign" v-bind:class="[ activePackage.notifications ? 's9-new' : 's10-5-new' ]">
+                                <p class="collapsible-header-text">{{activePackage.packageDescription.length ? activePackage.packageDescription : activePackage.trackingNumber}}</p>
                             </div>
-                            <div class="col s1-5 right-align badge-padding">
+                            <div class="col s1-5-new right-align badge-padding" v-if="activePackage.notifications">
                                 <span class="my-badge">{{activePackage.notifications}}</span>
                             </div>
                         </div>
                         <div class="collapsible-body">
                             <p>Број на пратка: {{activePackage.trackingNumber}}</p>
-                            <p>Опис на пратка: {{activePackage.packageDescription.length != 0 ? activePackage.packageDescription : "/"}}</p>
+                            <p>Опис на пратка: {{activePackage.packageDescription.length ? activePackage.packageDescription : "/"}}</p>
                             <p>Последно обновена: {{activePackage.lastRefresh}}</p>
                             <a class="waves-effect waves-dark btn-flat" v-on:click="saveActiveStateEditModal(index)">
                                 <i class="material-icons">edit</i></a>
@@ -80,19 +80,16 @@
                 <ul class="collapsible" id="archiveCollapsible">
                     <li v-for="(archivePackage, index) in archivePackages">
                         <div class="collapsible-header waves-effect waves-dark">
-                            <div class="col s1-5">
+                            <div class="col s1-5-new">
                                 <i class="material-icons">{{archivePackage.status}}</i>
                             </div>
-                            <div class="col s9-new middle-allign">
-                                <p class="collapsible-header-text">{{archivePackage.packageDescription.length != 0 ? archivePackage.packageDescription : archivePackage.trackingNumber}}</p>
-                            </div>
-                            <div class="col s1-5 right-align badge-padding">
-                                <span class="my-badge">{{archivePackage.notifications}}</span>
+                            <div class="col s10-5-new middle-allign">
+                                <p class="collapsible-header-text">{{archivePackage.packageDescription.length ? archivePackage.packageDescription : archivePackage.trackingNumber}}</p>
                             </div>
                         </div>
                         <div class="collapsible-body">
                             <p>Број на пратка: {{archivePackage.trackingNumber}}</p>
-                            <p>Опис на пратка: {{archivePackage.packageDescription.length != 0 ? archivePackage.packageDescription : "/"}}</p>
+                            <p>Опис на пратка: {{archivePackage.packageDescription.length ? archivePackage.packageDescription : "/"}}</p>
                             <p>Последно обновена: {{archivePackage.lastRefresh}}</p>
                             <a class="waves-effect waves-dark btn-flat" v-on:click="saveArchiveStateEditModal(index)">
                                 <i class="material-icons">edit</i></a>

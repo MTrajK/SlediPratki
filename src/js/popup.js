@@ -129,6 +129,9 @@ var vueApp = new Vue({
             // close modal
             MaterializeComponents.actionModalInstance.close();
         },
+        removeNotifications: function (index) {
+            this.activePackages[index].notifications = 0;
+        },
 
 
         /**********************
