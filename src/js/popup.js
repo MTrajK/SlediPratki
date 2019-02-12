@@ -36,8 +36,11 @@ var vueApp = new Vue({
             oldPackageDescription: ""
         },
         settings: {
-            MaxActivePackages: 20,
-            MaxArchivePackages: 15
+            autoRefresh: true,
+            refreshInterval: 1,
+            notifications: true,
+            maxActivePackages: 20,
+            maxArchivePackages: 15
         },
         activePackages: [],
         archivePackages: []
@@ -85,7 +88,7 @@ var vueApp = new Vue({
 
             // remove the main spiner after loading the whole info and init all components
             MaterializeComponents.mainSpinner = this.$el.querySelector("#main_spinner");
-            setTimeout(function (){
+            setTimeout(function () {
                 MaterializeComponents.mainSpinner.style.display = "none";
             }, 1500);
         })
@@ -113,11 +116,11 @@ var vueApp = new Vue({
             // disable edit button if the package description is same as the old package description
             return this.packageState.packageDescription === this.packageState.oldPackageDescription;
         },
-        disableNewActive: function () { 
-            return this.settings.MaxActivePackages === this.activePackages.length;
+        disableNewActive: function () {
+            return this.settings.maxActivePackages === this.activePackages.length;
         },
         disableNewArchive: function () {
-            return this.settings.MaxArchivePackages === this.archivePackages.length; 
+            return this.settings.maxArchivePackages === this.archivePackages.length;
         },
         disableRefreshing: function () {
             return this.activePackages.length === 0;
@@ -256,28 +259,38 @@ var vueApp = new Vue({
             MaterializeComponents.addModal.trackingNumberInput.focus();
         },
         addNewActivePackage: function () {
-            // add add spinner
+            // add spinner
             MaterializeComponents.addSpinner.style.display = "block";
 
-            // add the new package
-            this.activePackages.push({
-                trackingNumber: this.addNewPackage.trackingNumber,
-                packageDescription: this.addNewPackage.packageDescription,
-                status: "local_shipping",
-                notifications: 3,
-                lastRefresh: Common.getDateTime()
-            });
+            var thisApp = this;
 
-            // open the last added package
-            var latestPackage = this.activePackages.length - 1;
-            MaterializeComponents.addModal.addModalInstance.options.onCloseEnd = function () {
-                MaterializeComponents.activeInstance.open(latestPackage);
-            };
+            var end = function (response) {
+                console.log(response);
 
-            // close modal after getting the results from the api and writting them in storage
-            setTimeout(function (){ 
+                if (response === "error") {
+                    // error
+                }
+
+                // add the new package
+                thisApp.activePackages.push({
+                    trackingNumber: thisApp.addNewPackage.trackingNumber,
+                    packageDescription: thisApp.addNewPackage.packageDescription,
+                    status: "local_shipping",
+                    notifications: 3,
+                    lastRefresh: Common.getDateTime()
+                });
+
+                // open the last added package
+                var latestPackage = thisApp.activePackages.length - 1;
+                MaterializeComponents.addModal.addModalInstance.options.onCloseEnd = function () {
+                    MaterializeComponents.activeInstance.open(latestPackage);
+                };
+
+                // close modal after getting the results from the api and writting them in storage
                 MaterializeComponents.addModal.addModalInstance.close();
-            }, 1000);
+            };
+            
+            Common.getPackage(this.addNewPackage.trackingNumber, end);
         },
 
 

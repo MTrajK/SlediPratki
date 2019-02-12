@@ -130,7 +130,7 @@
                     <div class="col s4">
                         <div class="switch">
                             <label>
-                                <input type="checkbox">
+                                <input type="checkbox" v-model="settings.autoRefresh">
                                 <span class="lever"></span>
                             </label>
                         </div>
@@ -140,8 +140,8 @@
                         <p>Интервал на обновување:</p>
                     </div>
                     <div class="input-field col s5">
-                        <select id="refreshInterval">
-                            <option value="1" selected>1 час</option>
+                        <select id="refreshInterval" v-model="settings.refreshInterval">
+                            <option value="1">1 час</option>
                             <option value="2">2 часа</option>
                             <option value="4">4 часа</option>
                             <option value="6">6 часа</option>
@@ -156,7 +156,7 @@
                     <div class="col s4">
                         <div class="switch">
                             <label>
-                                <input type="checkbox">
+                                <input type="checkbox" v-model="settings.notifications">
                                 <span class="lever"></span>
                             </label>
                         </div>
@@ -166,14 +166,14 @@
                         <p>Максимален број на активни пратки:</p>
                     </div>
                     <div class="col s3">
-                        <span>{{ settings.MaxActivePackages }}</span>
+                        <span>{{ settings.maxActivePackages }}</span>
                     </div>
 
                     <div class="col s9">
                         <p>Максимален број на архвирани пратки:</p>
                     </div>
                     <div class="col s3">
-                        <span>{{ settings.MaxArchivePackages }}</span>
+                        <span>{{ settings.maxArchivePackages }}</span>
                     </div>
 
                     <div class="col s12">
@@ -242,7 +242,7 @@
             </div>
 
             <!-- ADD SPINNER -->
-            
+
             <div id="add_spinner" class="spinner-overlay">
                 <div class="preloader-wrapper active add-spinner">
                     <div class="spinner-layer spinner-yellow-only">
@@ -258,7 +258,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- ADD SPINNER -->
 
         </div>
