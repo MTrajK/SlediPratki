@@ -1,6 +1,5 @@
 Common = (function () {
 
-    var corsProxy = "https://cors.io/?";
     var postUrl = "https://www.posta.com.mk/tnt/api/query?id=";
 
     function convertDate(date) {
@@ -19,7 +18,7 @@ Common = (function () {
     function getPackage(trackingNumber, end) {
         axios({
             method: 'get',
-            url: corsProxy + postUrl + trackingNumber,
+            url: postUrl + trackingNumber,
             timeout: 10000 // 10 seconds max request
         }).then(function (response) {
             end(response);

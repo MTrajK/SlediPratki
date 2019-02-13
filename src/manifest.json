@@ -23,6 +23,7 @@
     },
     
     "permissions": [
+        "https://www.posta.com.mk/*",
         "storage",
         "contextMenus",
         "notifications"
