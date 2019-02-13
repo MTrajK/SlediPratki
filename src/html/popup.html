@@ -74,7 +74,8 @@
                         <li><a class="btn-floating waves-effect waves-light btn-small my-red" v-on:click="openAddModal"
                                 v-bind:class="{ disabled: disableNewActive }">
                                 <i class="material-icons">add</i></a></li>
-                        <li><a class="btn-floating waves-effect waves-light btn-small my-red" v-bind:class="{ disabled: disableRefreshing }">
+                        <li><a class="btn-floating waves-effect waves-light btn-small my-red" v-on:click="openRefreshModal"
+                                v-bind:class="{ disabled: disableRefreshing }">
                                 <i class="material-icons">refresh</i></a></li>
                     </ul>
                 </div>
@@ -265,6 +266,38 @@
 
         </div>
         <!-- ADD PACKAGE MODAL -->
+        <!-- REFRESH PACKAGES MODAL -->
+        <div id="refreshModal" class="modal bottom-sheet">
+            <div class="modal-content">
+                <div class="add-text">Обнови ги податоците за пратките</div>
+            </div>
+            <div class="modal-footer">
+                <a class="modal-close waves-effect waves-dark btn-flat">Откажи</a>
+                <a class="waves-effect waves-dark btn-flat" v-on:click="refreshPackages">Обнови</a>
+            </div>
+
+            <!-- REFRESH SPINNER -->
+
+            <div id="refresh_spinner" class="spinner-overlay">
+                <div class="preloader-wrapper active add-spinner">
+                    <div class="spinner-layer spinner-yellow-only">
+                        <div class="circle-clipper left">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="gap-patch">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="circle-clipper right">
+                            <div class="circle"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REFRESH SPINNER -->
+
+        </div>
+        <!-- REFRESH PACKAGES MODAL -->
         <!-- EDIT PACKAGE MODAL -->
         <div id="editModal" class="modal bottom-sheet">
             <div class="modal-content">
@@ -293,6 +326,7 @@
             </div>
         </div>
         <!-- ACTION PACKAGE MODAL -->
+
     </div>
 
     <!--<script src="../js/materialize.min.js"></script>-->

@@ -8,7 +8,12 @@ var MaterializeComponents = {
         addModalInstance: undefined,
         trackingNumberInput: undefined,
         trackingNumberLabel: undefined,
-        packageDescriptionLabel: undefined
+        packageDescriptionLabel: undefined,
+        addSpinner: undefined
+    },
+    refreshModal: {
+        refreshModalInstance: undefined,
+        refreshSpinner: undefined
     },
     editModal: {
         editModalInstance: undefined,
@@ -16,11 +21,10 @@ var MaterializeComponents = {
         packageDescriptionLabel: undefined
     },
     actionModalInstance: undefined,
-    addSpinner: undefined,
     mainSpinner: undefined
 };
 
-var vueApp = new Vue({
+new Vue({
     el: '#app',
     data: {
         addNewPackage: {
@@ -71,10 +75,21 @@ var vueApp = new Vue({
             MaterializeComponents.addModal.trackingNumberLabel = this.$el.querySelector("#tracking_number_label");
             MaterializeComponents.addModal.packageDescriptionLabel = this.$el.querySelector("#package_description_label");
 
+            // add spinner
+            MaterializeComponents.addModal.addSpinner = this.$el.querySelector("#add_spinner");
+
             // action package modal
             MaterializeComponents.actionModalInstance = M.Modal.init(this.$el.querySelector("#actionModal"), {
                 dismissible: false
             });
+
+            // refresh packages modal
+            MaterializeComponents.refreshModal.refreshModalInstance = M.Modal.init(this.$el.querySelector("#refreshModal"), {
+                dismissible: false
+            });
+
+            // refresh spinner
+            MaterializeComponents.refreshModal.refreshSpinner = this.$el.querySelector("#refresh_spinner");
 
             // edit package modal
             MaterializeComponents.editModal.editModalInstance = M.Modal.init(this.$el.querySelector("#editModal"), {
@@ -83,11 +98,10 @@ var vueApp = new Vue({
             MaterializeComponents.editModal.packageDescriptionInput = this.$el.querySelector("#edit_package_description");
             MaterializeComponents.editModal.packageDescriptionLabel = this.$el.querySelector("#edit_package_description_label");
 
-            // add spinner
-            MaterializeComponents.addSpinner = this.$el.querySelector("#add_spinner");
-
             // remove the main spiner after loading the whole info and init all components
             MaterializeComponents.mainSpinner = this.$el.querySelector("#main_spinner");
+
+
             setTimeout(function () {
                 MaterializeComponents.mainSpinner.style.display = "none";
             }, 1500);
@@ -132,6 +146,7 @@ var vueApp = new Vue({
         /**********************
         **   COMMON METHODS  **
         ***********************/
+
 
         updateFromState: function () {
             if (this.packageState.action === "move") {
@@ -250,7 +265,7 @@ var vueApp = new Vue({
             MaterializeComponents.addModal.packageDescriptionLabel.classList.remove("active");
 
             // remove add spinner
-            MaterializeComponents.addSpinner.style.display = "none";
+            MaterializeComponents.addModal.addSpinner.style.display = "none";
 
             // open modal
             MaterializeComponents.addModal.addModalInstance.open();
@@ -260,7 +275,7 @@ var vueApp = new Vue({
         },
         addNewActivePackage: function () {
             // add spinner
-            MaterializeComponents.addSpinner.style.display = "block";
+            MaterializeComponents.addModal.addSpinner.style.display = "block";
 
             var thisApp = this;
 
@@ -276,7 +291,7 @@ var vueApp = new Vue({
                     trackingNumber: thisApp.addNewPackage.trackingNumber,
                     packageDescription: thisApp.addNewPackage.packageDescription,
                     status: "local_shipping",
-                    notifications: 3,
+                    notifications: 0,
                     lastRefresh: Common.getDateTime()
                 });
 
@@ -291,6 +306,34 @@ var vueApp = new Vue({
             };
 
             Common.getPackage(this.addNewPackage.trackingNumber, end);
+        },
+
+
+        /**********************
+        **  REFRESH PACKAGE  **
+        ***********************/
+
+
+        openRefreshModal: function() {
+            // remove refresh spinner
+            MaterializeComponents.refreshModal.refreshSpinner.style.display = "none";
+
+            // open modal
+            MaterializeComponents.refreshModal.refreshModalInstance.open();
+        },
+        refreshPackages: function () {
+            // add refresh spinner
+            MaterializeComponents.refreshModal.refreshSpinner.style.display = "block";
+
+            // close the active collapsibles
+            for (var i=0; i<this.activePackages.length; i++) {
+                MaterializeComponents.activeInstance.close(i);
+            }
+
+            // close modal after 3 seconds
+            setTimeout(function () {
+                MaterializeComponents.refreshModal.refreshModalInstance.close();
+            }, 3000);
         },
 
 
