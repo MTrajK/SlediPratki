@@ -19,7 +19,7 @@ Common = (function () {
         axios({
             method: 'get',
             url: postUrl + trackingNumber,
-            timeout: 10000 // 10 seconds max request
+            timeout: 15000 // 15 seconds max request
         }).then(function (response) {
             end(response);
         }).catch(function (error) {
