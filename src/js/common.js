@@ -1,23 +1,21 @@
 Common = (function () {
 
     var postUrl = "https://www.posta.com.mk/tnt/api/query?id=";
-    var maxRequestTime = 15000; // 15 seconds max request
+    var maxRequestTime = 15000;     // 15 seconds max request
+    var oneHourMillis = 3600000;    // 60 min * 60 sec * 1000 milliseconds = 3.600.000
+    var months = ["Јануари", "Февруари", "Март", "Април", "Мај", "Јуни", "Јули", "Август", "Септември", "Октомври", "Ноември", "Декември"];
 
-    var addZero = function(num) {
+    var addZero = function (num) {
         return (num < 10 ? "0" : "") + num;
     }
 
-    var convertDate = function(date) {
-        return addZero(date.getDate()) + "."
-            + addZero(date.getMonth() + 1) + "."
+    var formatDate = function (date) {
+        return addZero(date.getDate()) + " "
+            + months[date.getMonth()] + " "
             + date.getFullYear() + ", "
             + addZero(date.getHours()) + ":"
             + addZero(date.getMinutes()) + ":"
             + addZero(date.getSeconds());
-    };
-
-    var getDateTime = function() {
-        return convertDate(new Date());
     };
 
     var getPackage = function (trackingNumber, end) {
@@ -33,7 +31,8 @@ Common = (function () {
         });
     };
 
-    var startBackground = function() {
+    var startBackground = function () {
+        var nowTime = new Date();
         /*
         var lastRefresh = getLastRefresh();
         var refreshInterval = getRefreshInterval();
@@ -51,8 +50,8 @@ Common = (function () {
     };
 
     return {
-        getDateTime: getDateTime,
         getPackage: getPackage,
+        formatDate: formatDate,
         startBackground: startBackground
     };
 })();

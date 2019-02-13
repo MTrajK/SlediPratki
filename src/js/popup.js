@@ -292,7 +292,7 @@ new Vue({
                     packageDescription: thisApp.addNewPackage.packageDescription,
                     status: "local_shipping",
                     notifications: 0,
-                    lastRefresh: Common.getDateTime()
+                    lastRefresh: Common.formatDate(new Date())
                 });
 
                 // open the last added package
