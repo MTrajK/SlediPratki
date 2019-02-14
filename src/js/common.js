@@ -2,13 +2,32 @@ Common = (function () {
 
     var postUrl = "https://www.posta.com.mk/tnt/api/query?id=";
     var maxRequestTime = 15000;     // 15 seconds max request
-    var oneHourMillis = 3600000;    // 60 min * 60 sec * 1000 milliseconds = 3.600.000
     var months = ["Јануари", "Февруари", "Март", "Април", "Мај", "Јуни", "Јули", "Август", "Септември", "Октомври", "Ноември", "Декември"];
+    
+    /**
+    * Strings used to access the chrome storage.
+    */ 
+    var storageStrings = {
+        version: "SlediPratki.Version",
+        lastRefresh: "SlediPratki.LastRefresh",
+        totalNotifications: "SlediPratki.TotalNotifications",
+        activeTrackingNumbers: "SlediPratki.ActiveTrackingNumbers",
+        archiveTrackingNumbers: "SlediPratki.ArchiveTrackingNumbers",
+        autoRefresh: "SlediPratki.Settings.AutoRefresh",
+        refreshInterval: "SlediPratki.Settings.RefreshInterval",
+        enableNotifications: "SlediPratki.Settings.EnableNotifications",
+        maxActivePackages: "SlediPratki.Settings.MaxActivePackages",
+        maxArchivePackages: "SlediPratki.Settings.MaxArchivePackages",
+        trackingNumbers: "SlediPratki.TrackingNumbers."
+    };
 
     var addZero = function (num) {
         return (num < 10 ? "0" : "") + num;
     }
 
+    /**
+    * Format a Date() object to string: "DD Month YYY, HH:MM:SS".
+    */ 
     var formatDate = function (date) {
         return addZero(date.getDate()) + " "
             + months[date.getMonth()] + " "
@@ -18,40 +37,79 @@ Common = (function () {
             + addZero(date.getSeconds());
     };
 
-    var getPackage = function (trackingNumber, end) {
+    /**
+    * Get data for some package from the posta.com.mk service.
+    */  
+    var getPackage = function (trackingNumber, success, fail) {
         axios({
             method: 'get',
             url: postUrl + trackingNumber,
             timeout: maxRequestTime
         }).then(function (response) {
-            end(response);
+            success(response);
         }).catch(function (error) {
-            console.log(error);
-            end("error");
+            fail("error");
         });
     };
 
-    var startBackground = function () {
-        var nowTime = new Date();
-        /*
-        var lastRefresh = getLastRefresh();
-        var refreshInterval = getRefreshInterval();
-    
-        if (lastRefresh >= refreshInterval) {
-            // set interval
+    /**
+    * Get from the chrome storage.
+    */  
+    var storageGet = function (keys, end) {
+        chrome.storage.sync.get(keys, end);
+    };
+
+    /**
+    * Set to the chrome storage.
+    */  
+    var storageSet = function (keysValues, end) {
+        chrome.storage.sync.set(keysValues, end);
+    };
+
+    /**
+    * Remove from the chrome storage.
+    */  
+    var storageRemove = function (keys, end) {
+        chrome.storage.sync.remove(keys, end);
+    };
+
+    /**
+    * Add or remove badge with notifications on the extension icon.
+    */  
+    var setBadge = function (notifications) {
+        if (notifications === 0) {
+            // remove badge
+            chrome.browserAction.setBadgeText({ text: "" });
         } else {
-            // set timeout and inside set interval
+            // add badge
+            chrome.browserAction.setBadgeBackgroundColor({ color: "#4db6ac" });
+            chrome.browserAction.setBadgeText({ text: notifications + "" });
         }
-        // stop the interval in this way
-        var refreshIntervalId = setInterval(fname, 10000);
+    };
+
+    /**
+    * Passed miliseconds from firstDate to secondDate. (secondDate - firstDate)
+    */  
+    var dateDiff = function (firstDate, secondDate) {
+        return secondDate.getTime() - firstDate.getTime();
+    };
+
+    /**
+    * Refresh the data for all active packages.
+    */ 
+    var refreshData = function () {
         
-        clearInterval(refreshIntervalId);
-        */
     };
 
     return {
+        storageStrings: storageStrings,
         getPackage: getPackage,
         formatDate: formatDate,
-        startBackground: startBackground
+        storageGet: storageGet,
+        storageSet: storageSet,
+        storageRemove: storageRemove,
+        setBadge: setBadge,
+        dateDiff: dateDiff,
+        refreshData: refreshData
     };
 })();

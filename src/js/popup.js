@@ -101,7 +101,6 @@ new Vue({
             // remove the main spiner after loading the whole info and init all components
             MaterializeComponents.mainSpinner = this.$el.querySelector("#main_spinner");
 
-
             setTimeout(function () {
                 MaterializeComponents.mainSpinner.style.display = "none";
             }, 1500);
@@ -305,7 +304,7 @@ new Vue({
                 MaterializeComponents.addModal.addModalInstance.close();
             };
 
-            Common.getPackage(this.addNewPackage.trackingNumber, end);
+            Common.getPackage(this.addNewPackage.trackingNumber, end, end);
         },
 
 
