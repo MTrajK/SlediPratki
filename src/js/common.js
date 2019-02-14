@@ -41,9 +41,44 @@ Common = (function () {
         return (new Date()).toJSON();
     };
 
-    var convertXMLToJSON = function (xmlResult) {
+    var convertXMLToList = function (xmlResult) {
+        var result = [];
+
+        var parser = new DOMParser();
+        var xmlDoc = parser.parseFromString(xmlResult, "text/xml");
+
+        var length = xmlDoc.getElementsByTagName("TrackingData").length;
+
+        for (var i = 0; i < length; i++) {
+            result.push({
+                begining: xmlDoc.getElementsByTagName("Begining")[i].childNodes[0].nodeValue,
+                end: xmlDoc.getElementsByTagName("End")[i].childNodes[0].nodeValue,
+                date: xmlDoc.getElementsByTagName("Date")[i].childNodes[0].nodeValue,
+                notice: xmlDoc.getElementsByTagName("Notice")[i].childNodes[0].nodeValue
+            });
+        }
+
         // returns list of tracking data
-        return "";
+        return result;
+    };
+
+    /**
+    * Get status of tracking data (read the notice from the last result).
+    * 3 possible statuses: 
+    * - "clear": no results
+    * - "local_shipping": package in transit
+    * - "done": package recived
+    */
+    var getStatusOfTrackingData = function (trackingData) {
+        var length = trackingData.length;
+
+        if (length === 0) {
+            return "clear";
+        } else if (trackingData[length - 1].notice === "Ispora~ana") {
+            return "done";
+        } else {
+            return "local_shipping";
+        }
     };
 
     /**
@@ -55,7 +90,7 @@ Common = (function () {
             url: postUrl + trackingNumber,
             timeout: maxRequestTime
         }).then(function (response) {
-            var convertedResponse = convertXMLToJSON(responese);
+            var convertedResponse = convertXMLToList(responese);
             success(convertedResponse);
         }).catch(function (error) {
             fail("error");
@@ -186,35 +221,16 @@ Common = (function () {
         }
     };
 
-    /**
-    * Get status of tracking data (read the notice from the last result).
-    * 3 possible statuses: 
-    * - "clear": no results
-    * - "local_shipping": package in transit
-    * - "done": package recived
-    */
-    var getStatusOfTrackingData = function (trackingData) {
-        var length = trackingData.length;
-
-        if (length === 0) {
-            return "clear";
-        } else if (trackingData[length - 1].notice === "Ispora~ana") {
-            return "done";
-        } else {
-            return "local_shipping";
-        }
-    };
-
     return {
         storageStrings: storageStrings,
-        getPackage: getPackage,
         formatDate: formatDate,
+        getStatusOfTrackingData: getStatusOfTrackingData,
+        getPackage: getPackage,
         storageGet: storageGet,
         storageSet: storageSet,
         storageRemove: storageRemove,
         setBadge: setBadge,
         dateDiff: dateDiff,
-        refreshActiveTrackingNumbers: refreshActiveTrackingNumbers,
-        getStatusOfTrackingData: getStatusOfTrackingData
+        refreshActiveTrackingNumbers: refreshActiveTrackingNumbers
     };
 })();
