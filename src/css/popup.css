@@ -118,6 +118,10 @@ html, body {
     z-index: 1005;
 }
 
+#main_spinner {
+    z-index: 1010;
+}
+
 .add-spinner {
     width: 64px;
     height: 64px;

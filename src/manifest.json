@@ -21,6 +21,11 @@
           },
         "default_title": "Следи Пратки"
     },
+
+    "background":{
+    	"scripts": ["js/axios.min.js", "js/common.js", "js/background.js"],
+    	"persistent": false
+    },
     
     "permissions": [
         "https://www.posta.com.mk/*",
