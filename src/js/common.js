@@ -122,7 +122,7 @@ Common = (function () {
     * Add or remove badge with notifications on the extension icon.
     */
     var setBadge = function (notifications) {
-        if (notifications === 0) {
+        if (notifications < 1) {
             // remove badge
             chrome.browserAction.setBadgeText({ text: "" });
         } else {
@@ -142,7 +142,7 @@ Common = (function () {
     /**
     * Refresh the data for all active tracking numbers.
     */
-    var refreshActiveTrackingNumbers = function (storage, end) {
+    var refreshActiveTrackingNumbers = function (storage, callback) {
         var activeTrackingNumbers = storage[storageStrings.activeTrackingNumbers];
         var enableNotifications = storage[storageStrings.enableNotifications];
         var totalNotifications = storage[storageStrings.totalNotifications];
@@ -154,7 +154,7 @@ Common = (function () {
         for (var i = 0; i < activeTrackingNumbersLength; i++) {
             var thisTrackingNumber = storageStrings.trackingNumbers + allActiveTrackingNumbers[i];
 
-            var callback = function (newResult) {
+            var ajaxCallback = function (newResult) {
                 storageGet([thisTrackingNumber], function (oldResult) {
 
                     var updateOldResult = oldResult[thisTrackingNumber];
@@ -208,17 +208,299 @@ Common = (function () {
                             chrome.notifications.create("SlediPratki" + (new Date()).getTime(), options);
                         }
 
-                        // run end() callback method
-                        if (end) {
-                            end();
+                        // run the outside callback() method
+                        if (callback) {
+                            callback();
                         }
                     }
 
                 });
             };
 
-            getPackage(thisTrackingNumber, callback, callback);
+            // call the api
+            getPackage(thisTrackingNumber, ajaxCallback, ajaxCallback);
         }
+    };
+
+    /**
+    * Add new package.
+    */
+    var addNewPackage = function (trackingNumber, packageDescription, callback) {
+        var ajaxCallback = function (apiResponse) {
+            storageGet([
+                storageStrings.activeTrackingNumbers
+            ], function (storageResponse) {
+                // add this tracking number into active tracking numbers list
+                var newActiveTrackingNumbers = storageResponse[storageStrings.activeTrackingNumbers];
+                newActiveTrackingNumbers.push(trackingNumber);
+
+                // change api response if error
+                if (apiResponse === "error") {
+                    apiResponse = [];
+                }
+
+                // create the new package
+                var newPackage = {};
+                newPackage.lastRefresh = dateNowJSON();
+                newPackage.notifications = 0;
+                newPackage.status = getStatusOfTrackingData(apiResponse);
+                newPackage.packageDescription = packageDescription;
+                newPackage.trackingData = apiResponse;
+
+
+                // update active tracking numbers list and add the new package
+                var updateStorage = {};
+                updateStorage[storageStrings.trackingNumbers + trackingNumber] = newPackage;
+                updateStorage[storageStrings.activeTrackingNumbers] = newActiveTrackingNumbers;
+
+                storageSet(updateStorage, function () {
+                    // send the new package to the callback method
+                    callback(newPackage);
+                });
+            });
+        };
+
+        // call the api
+        getPackage(treckingNumber, ajaxCallback, ajaxCallback);
+    };
+
+    /**
+    * Delete active package.
+    */
+    var deleteActivePackage = function (trackingNumber, callback) {
+        var thisTrackingNumber = storageStrings.trackingNumbers + trackingNumber;
+
+        storageGet([
+            storageStrings.activeTrackingNumbers
+        ], function (response) {
+            var activeTrackingNumbers = response[storageStrings.activeTrackingNumbers];
+
+            // remove tracking number from active
+            var removeIndex = activeTrackingNumbers.indexOf(trackingNumber);
+            activeTrackingNumbers.splice(removeIndex, 1);
+
+            // save the updated list
+            var updateActiveTrackingNumbers = {};
+            updateActiveTrackingNumbers[storageStrings.activeTrackingNumbers] = activeTrackingNumbers;
+
+            storageSet(updateActiveTrackingNumbers, function () {
+                storageRemove([thisTrackingNumber], callback);
+            });
+        });
+    };
+
+    /**
+    * Delete archive package.
+    */
+    var deleteArchivePackage = function (trackingNumber, callback) {
+        var thisTrackingNumber = storageStrings.trackingNumbers + trackingNumber;
+
+        storageGet([
+            storageStrings.archiveTrackingNumbers
+        ], function (response) {
+            var archiveTrackingNumbers = response[storageStrings.archiveTrackingNumbers];
+
+            // remove tracking number from archive
+            var removeIndex = archiveTrackingNumbers.indexOf(trackingNumber);
+            archiveTrackingNumbers.splice(removeIndex, 1);
+
+            // save the updated list
+            var updatearchiveTrackingNumbers = {};
+            updatearchiveTrackingNumbers[storageStrings.archiveTrackingNumbers] = archiveTrackingNumbers;
+
+            storageSet(updatearchiveTrackingNumbers, function () {
+                storageRemove([thisTrackingNumber], callback);
+            });
+        });
+    };
+
+    /**
+    * Change description of package.
+    */
+    var changePackageDescription = function (trackingNumber, packageDescription, callback) {
+        var thisTrackingNumber = storageStrings.trackingNumbers + trackingNumber;
+
+        storageGet([
+            thisTrackingNumber
+        ], function (response) {
+            // update the package description
+            var package = response[thisTrackingNumber];
+            package.packageDescription = packageDescription;
+
+            // save the package with updated description
+            var updatePackage = {};
+            updatePackage[thisTrackingNumber] = package;
+
+            storageSet(updatePackage, callback);
+        });
+    };
+
+    /**
+    * Move an active package to archive. 
+    */
+    var moveActiveToArchive = function (trackingNumber, callback) {
+        storageGet([
+            storageStrings.activeTrackingNumbers,
+            storageStrings.archiveTrackingNumbers
+        ], function (response) {
+            var activeTrackingNumbers = response[storageStrings.activeTrackingNumbers];
+            var archiveTrackingNumbers = response[storageStrings.archiveTrackingNumbers];
+
+            // remove tracking number from active
+            var removeIndex = activeTrackingNumbers.indexOf(trackingNumber);
+            activeTrackingNumbers.splice(removeIndex, 1);
+
+            // add tracking number in archive
+            archiveTrackingNumbers.push(trackingNumber);
+
+            // save the updated lists
+            var updateTrackingNumbers = {};
+            updateTrackingNumbers[storageStrings.activeTrackingNumbers] = activeTrackingNumbers;
+            updateTrackingNumbers[storageStrings.archiveTrackingNumbers] = archiveTrackingNumbers;
+
+            storageSet(updateTrackingNumbers, callback);
+        });
+    };
+
+    /**
+    * Move an archived package to active. 
+    */
+    var moveArchiveToActive = function (trackingNumber, callback) {
+        storageGet([
+            storageStrings.activeTrackingNumbers,
+            storageStrings.archiveTrackingNumbers
+        ], function (response) {
+            var activeTrackingNumbers = response[storageStrings.activeTrackingNumbers];
+            var archiveTrackingNumbers = response[storageStrings.archiveTrackingNumbers];
+
+            // remove tracking number from archive
+            var removeIndex = archiveTrackingNumbers.indexOf(trackingNumber);
+            archiveTrackingNumbers.splice(removeIndex, 1);
+
+            // add tracking number in active
+            activeTrackingNumbers.push(trackingNumber);
+
+            // save the updated lists
+            var updateTrackingNumbers = {};
+            updateTrackingNumbers[storageStrings.activeTrackingNumbers] = activeTrackingNumbers;
+            updateTrackingNumbers[storageStrings.archiveTrackingNumbers] = archiveTrackingNumbers;
+
+            storageSet(updateTrackingNumbers, callback);
+        });
+    };
+
+    /**
+    * Change settings property for auto refresh. 
+    */
+    var changeAutoRefresh = function (autoRefresh, callback) {
+        var autoRefreshChange = {};
+        autoRefreshChange[storageStrings.autoRefresh] = autoRefresh;
+        storageSet(autoRefreshChange, callback);
+    };
+
+    /**
+    * Change settings property for refresh interval. 
+    */
+    var changeRefreshInterval = function (refreshInterval, callback) {
+        var refreshIntervalChange = {};
+        refreshIntervalChange[storageStrings.refreshInterval] = refreshInterval;
+        storageSet(refreshIntervalChange, callback);
+    };
+
+    /**
+    * Change settings property for notifications. 
+    */
+    var changeEnableNotifications = function (enableNotifications, callback) {
+        var enableNotificationsChange = {};
+        enableNotificationsChange[storageStrings.enableNotifications] = enableNotifications;
+        storageSet(enableNotificationsChange, callback);
+    };
+
+    /**
+    * Remove notifications for some tracking number. 
+    */
+    var removeNotifications = function (trackingNumber, callback) {
+        var thisTrackingNumber = storageStrings.trackingNumbers + trackingNumber;
+
+        storageGet([
+            storageStrings.totalNotifications,
+            thisTrackingNumber
+        ], function (response) {
+            // update the notifications for this package
+            var package = response[thisTrackingNumber];
+            var totalNotifications = response[storageStrings.totalNotifications] - package.notifications;
+            package.notifications = 0;
+
+            // update the badge
+            setBadge(totalNotifications);
+
+            // save the package with 0 notifications and update total notifications
+            var updateStorage = {};
+            updateStorage[thisTrackingNumber] = package;
+            updateStorage[storageStrings.totalNotifications] = totalNotifications;
+
+            storageSet(updateStorage, callback);
+        });
+    };
+
+    /**
+    * Get all info needed for the app.
+    */
+    var getStorage = function (callback) {
+        storageGet([
+            storageStrings.activeTrackingNumbers,
+            storageStrings.archiveTrackingNumbers,
+            storageStrings.autoRefresh,
+            storageStrings.refreshInterval,
+            storageStrings.enableNotifications,
+            storageStrings.maxActivePackages,
+            storageStrings.maxArchivePackages
+        ], function (response) {
+            var allTrackingNumbers = {};
+            var addedTrackingNumbers = 0;
+            var activeTrackingNumbers = response[storageStrings.activeTrackingNumbers];
+            var archiveTrackingNumbers = response[storageStrings.archiveTrackingNumbers];
+            var totalTrackingNumbers = activeTrackingNumbersLength.length + archiveTrackingNumbersLength.length;
+
+            var trackingNumberCallback = function (trackingNumber, trackingNumberResponse) {
+                // get all info from the storage for this tracking number
+                allTrackingNumbers[trackingNumber] = trackingNumberResponse[storageStrings.trackingNumbers + trackingNumber];
+
+                addedTrackingNumbers++;
+                if (addedTrackingNumbers === totalTrackingNumbers) {
+                    // in this case, this is the last tracking number
+                    // save the results and return them to the callback method
+                    var result = {};
+                    result[storageStrings.activeTrackingNumbers] = activeTrackingNumbers;
+                    result[storageStrings.archiveTrackingNumbers] = archiveTrackingNumbers;
+                    result[storageStrings.autoRefresh] = response[storageStrings.autoRefresh];
+                    result[storageStrings.enableNotifications] = response[storageStrings.enableNotifications];
+                    result[storageStrings.maxActivePackages] = response[storageStrings.maxActivePackages];
+                    result[storageStrings.maxArchivePackages] = response[storageStrings.maxArchivePackages];
+                    result[storageStrings.trackingNumbers] = allTrackingNumbers;
+
+                    callback(result);
+                }
+            };
+
+            // get the data for all active tracking numbers 
+            for (var i = 0; i < activeTrackingNumbers.length; i++) {
+                storageGet([ 
+                    storageStrings.trackingNumbers + activeTrackingNumbers[i] 
+                ], function (trackingNumberResponse) {
+                    trackingNumberCallback(activeTrackingNumbers[i], trackingNumberResponse);
+                });
+            }
+
+            // get the data for all archive tracking numbers
+            for (var i = 0; i < archiveTrackingNumbers.length; i++) {
+                storageGet([ 
+                    storageStrings.trackingNumbers + archiveTrackingNumbers[i] 
+                ], function (trackingNumberResponse) {
+                    trackingNumberCallback(archiveTrackingNumbers[i], trackingNumberResponse);
+                });
+            }
+        });
     };
 
     return {
@@ -231,6 +513,17 @@ Common = (function () {
         storageRemove: storageRemove,
         setBadge: setBadge,
         dateDiff: dateDiff,
-        refreshActiveTrackingNumbers: refreshActiveTrackingNumbers
+        refreshActiveTrackingNumbers: refreshActiveTrackingNumbers,
+        addNewPackage: addNewPackage,
+        deleteActivePackage: deleteActivePackage,
+        deleteArchivePackage: deleteArchivePackage,
+        changePackageDescription: changePackageDescription,
+        moveActiveToArchive: moveActiveToArchive,
+        moveArchiveToActive: moveArchiveToActive,
+        changeAutoRefresh: changeAutoRefresh,
+        changeRefreshInterval: changeRefreshInterval,
+        changeEnableNotifications: changeEnableNotifications,
+        removeNotifications: removeNotifications,
+        getStorage: getStorage
     };
 })();
