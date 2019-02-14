@@ -18,25 +18,30 @@
 
     /**
     * 6. Refresh the data.
-    */ 
+    */
     var refreshData = function (storageResults) {
         // break if the auto refresh is disabled
         if (!storageResults[Common.storageStrings.autoRefresh])
             return;
-        
+
         // how many milliseconds passed from the last refresh till now
         var diffRefresh = Common.dateDiff(new Date(storageResults[Common.storageStrings.lastRefresh]), new Date());
         var refreshInterval = storageResults[Common.storageStrings.refreshInterval] * oneHourMillis;
 
         // minus one second just in case (to handle small variations)
         if (refreshInterval - 1000 <= diffRefresh) {
-            Common.refreshData();
-        } 
+            // run refreshActiveTrackingNumbers to refresh data
+            Common.storageGet([
+                Common.storageStrings.activeTrackingNumbers,
+                Common.storageStrings.enableNotifications,
+                Common.storageStrings.totalNotifications
+            ], Common.refreshActiveTrackingNumbers);
+        }
     };
 
     /**
     * 5. Takes all needed info from the storage to start with refreshing.
-    */ 
+    */
     var getStorageAndRefreshData = function () {
         Common.storageGet([
             Common.storageStrings.autoRefresh,
@@ -47,7 +52,7 @@
 
     /**
     * 4. Checks if it's time for start of background interval.
-    */ 
+    */
     var setBackgroundInterval = function () {
         getStorageAndRefreshData();
         setInterval(getStorageAndRefreshData, oneHourMillis);
@@ -55,8 +60,9 @@
 
     /**
     * 3. Checks if it's time for start of background interval.
-    */ 
+    */
     var startBackground = function (storageResults) {
+        // update the badge
         Common.setBadge(storageResults[Common.storageStrings.totalNotifications]);
 
         // how many milliseconds passed from the last refresh till now
@@ -74,7 +80,7 @@
 
     /**
     * 2. Takes info for refresh interval.
-    */ 
+    */
     var getRefreshSettings = function () {
         Common.storageGet([
             Common.storageStrings.refreshInterval,
@@ -85,7 +91,7 @@
 
     /**
     * 1. Checks if the storage is empty. (if there is no version, the storage is empty)
-    */ 
+    */
     var checkVersion = function (response) {
         if (response[Common.storageStrings.version] === undefined) {
             // fill the storage with default values and after that start the background
@@ -97,7 +103,8 @@
     };
 
     /**
-     * 0. Start the background scripts.
-     */
+    * 0. Start the background scripts.
+    */
     Common.storageGet([Common.storageStrings.version], checkVersion);
+    
 })();
