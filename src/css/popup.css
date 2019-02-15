@@ -169,9 +169,8 @@ html, body {
 }
 
 .settings-num {
-    font-weight: bold;
     font-size: 16px;
-    color: #9e9e9e;
+    color: #50565d;
     margin-top: 8px;
     margin-bottom: 8px;
 }
@@ -214,7 +213,7 @@ html, body {
 }
 
 .bold-desc {
-    font-weight: bold;
+    color: rgba(0, 0, 0, 0.87);
 }
 
 .package-actions {
@@ -367,6 +366,14 @@ input[type=text]:not(.browser-default):focus:not([readonly]) {
 
 input[type=text]:not(.browser-default):focus:not([readonly]) + label {
     color: #fbc02d;
+}
+
+.select-wrapper .caret {
+    fill: #50565d;
+}
+
+input.select-dropdown.dropdown-trigger {
+    color: #50565d;
 }
 
 /*
