@@ -41,7 +41,21 @@ Common = (function () {
         return (new Date()).toJSON();
     };
 
+    /**
+    * Structure of posta.com.mk XML response
+    *    <ArrayOfTrackingData>
+    *        <TrackingData>
+	*	        <ID>UN232716818CN</ID>
+	*	        <Begining>Skopje IO 1003</Begining>
+	*	        <End>1020</End>
+	*	        <Date>11/5/2018, 1:33:10 PM</Date>
+	*	        <Notice>Vo Posta</Notice>
+	*        </TrackingData>
+    *    </ArrayOfTrackingData>
+    */
     var convertXMLToList = function (xmlResult) {
+        // if there are no results for some tracking number then the service will return <ArrayOfTrackingData></ArrayOfTrackingData>
+        // and the result will stay empty
         var result = [];
 
         var parser = new DOMParser();
@@ -49,6 +63,7 @@ Common = (function () {
 
         var length = xmlDoc.getElementsByTagName("TrackingData").length;
 
+        // look only for Begining, End, Date and Notice tags (those are used by app)
         for (var i = 0; i < length; i++) {
             result.push({
                 begining: xmlDoc.getElementsByTagName("Begining")[i].childNodes[0].nodeValue,
@@ -60,6 +75,24 @@ Common = (function () {
 
         // returns list of tracking data
         return result;
+    };
+
+    /**
+    * Format the notice text from posta.com.mk response. 
+    */
+    var formatNoticeText = function (notice) {
+        switch (notice) {
+            case "Ispora~ana":
+                return "Испорачана";
+            case "Vo Posta":
+                return "Во пошта";
+            case "Pristignata vo Naizmeni!na po{ta(Vlez)":
+                return "Пристигната во наизменична пошта";
+            case "Za isporaka na {alter":
+                return "За испорака на шалтер";
+            default:
+                return notice;
+        }
     };
 
     /**
@@ -90,7 +123,7 @@ Common = (function () {
             url: postUrl + trackingNumber,
             timeout: maxRequestTime
         }).then(function (response) {
-            var convertedResponse = convertXMLToList(responese);
+            var convertedResponse = convertXMLToList(response);
             success(convertedResponse);
         }).catch(function (error) {
             fail("error");
@@ -161,7 +194,8 @@ Common = (function () {
                     // update last refresh for this tracking number
                     updateOldResult.lastRefresh = dateNowJSON();
 
-                    if (newResult !== "error") {
+                    // if there is a new result and something new in that result
+                    if (newResult !== "error" && newResult.length > updateOldResult.trackingData.length) {
                         // update notifications for this tracking number
                         var newLocalNotifications = newResult.length - updateOldResult.trackingData.length;
                         newNotifications += newLocalNotifications;
@@ -196,7 +230,7 @@ Common = (function () {
                         // update the badge
                         setBadge(allNotifications);
 
-                        // show notification window in the right bottom corner
+                        // show notification window in the right bottom corner if there are new notifications
                         if (enableNotifications && newNotifications > 0) {
                             var suffix = (newNotifications > 1 ? "и" : "а");
                             var options = {
@@ -208,7 +242,7 @@ Common = (function () {
                             chrome.notifications.create("SlediPratki" + (new Date()).getTime(), options);
                         }
 
-                        // run the outside callback() method
+                        // run the outside callback() method if there is one
                         if (callback) {
                             callback();
                         }
@@ -246,7 +280,6 @@ Common = (function () {
                 newPackage.status = getStatusOfTrackingData(apiResponse);
                 newPackage.packageDescription = packageDescription;
                 newPackage.trackingData = apiResponse;
-
 
                 // update active tracking numbers list and add the new package
                 var updateStorage = {};
@@ -506,6 +539,7 @@ Common = (function () {
     return {
         storageStrings: storageStrings,
         formatDate: formatDate,
+        formatNoticeText: formatNoticeText,
         getStatusOfTrackingData: getStatusOfTrackingData,
         getPackage: getPackage,
         storageGet: storageGet,
