@@ -42,7 +42,7 @@ new Vue({
         settings: {
             autoRefresh: true,
             refreshInterval: 1,
-            notifications: true,
+            enableNotifications: true,
             maxActivePackages: 20,
             maxArchivePackages: 15
         },
@@ -122,7 +122,7 @@ new Vue({
         "settings.refreshInterval": function (newValue) {
             Common.changeRefreshInterval(newValue);
         },
-        "settings.notifications": function (newValue) {
+        "settings.enableNotifications": function (newValue) {
             Common.changeEnableNotifications(newValue);
         }
     },
