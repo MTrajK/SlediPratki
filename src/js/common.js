@@ -100,22 +100,22 @@ Common = (function () {
     /**
     * Get from the chrome storage.
     */
-    var storageGet = function (keys, end) {
-        chrome.storage.sync.get(keys, end);
+    var storageGet = function (keys, callback) {
+        chrome.storage.sync.get(keys, callback);
     };
 
     /**
     * Set to the chrome storage.
     */
-    var storageSet = function (keysValues, end) {
-        chrome.storage.sync.set(keysValues, end);
+    var storageSet = function (keysValues, callback) {
+        chrome.storage.sync.set(keysValues, callback);
     };
 
     /**
     * Remove from the chrome storage.
     */
-    var storageRemove = function (keys, end) {
-        chrome.storage.sync.remove(keys, end);
+    var storageRemove = function (keys, callback) {
+        chrome.storage.sync.remove(keys, callback);
     };
 
     /**
