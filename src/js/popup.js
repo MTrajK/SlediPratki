@@ -46,6 +46,7 @@ new Vue({
             maxActivePackages: 20,
             maxArchivePackages: 15
         },
+        allTrackingNumbers: [],
         activePackages: [],
         archivePackages: []
     },
@@ -101,6 +102,9 @@ new Vue({
             // remove the main spiner after loading the whole info and init all components
             MaterializeComponents.mainSpinner = this.$el.querySelector("#main_spinner");
 
+            /*
+            * TODO: GET STORAGE
+            */
             setTimeout(function () {
                 MaterializeComponents.mainSpinner.style.display = "none";
             }, 1500);
@@ -116,7 +120,7 @@ new Vue({
                 this.addNewPackage.trackingNumber = checkValue;
             }
         },
-        "settings.autoRefresh": function (newValue) { 
+        "settings.autoRefresh": function (newValue) {
             Common.changeAutoRefresh(newValue);
         },
         "settings.refreshInterval": function (newValue) {
@@ -129,7 +133,9 @@ new Vue({
     computed: {
         disableAdding: function () {
             // disable add button if the tracking number contains less than 8 chars
-            return this.addNewPackage.trackingNumber.length < 8;
+            // or if that tracking number exist in the active or archive collapsible
+            return this.addNewPackage.trackingNumber.length < 8 ||
+                this.allTrackingNumbers.indexOf(this.addNewPackage.trackingNumber) !== -1;
         },
         actionModalText: function () {
             return (this.packageState.action === "move") ? ((this.packageState.tab === "active") ? "Архивирај" : "Активирај") : "Избриши";
@@ -169,7 +175,7 @@ new Vue({
         removeNotifications: function (index) {
             var thisApp = this;
             if (thisApp.activePackages[index].notifications > 0) {
-                Common.removeNotifications(thisApp.activePackages[index].trackingNumber, function(){
+                Common.removeNotifications(thisApp.activePackages[index].trackingNumber, function () {
                     thisApp.activePackages[index].notifications = 0;
                 });
             }
@@ -183,16 +189,20 @@ new Vue({
 
         deletePackageFromState: function () {
             if (this.packageState.tab === "active") {
-                this.deleteActivePackage(this.packageState.index);
+                this.deleteActivePackage();
             } else {
-                this.deleteArchivePackage(this.packageState.index);
+                this.deleteArchivePackage();
             }
+
+            var allTrackingNumbersIndex = this.allTrackingNumbers.indexOf(this.packageState.trackingNumber);
+            this.allTrackingNumbers.splice(allTrackingNumbersIndex, 1);
         },
-        deleteActivePackage: function (index) {
+        deleteActivePackage: function () {
+            var activeIndex = this.packageState.index;
             MaterializeComponents.activeInstance.options.outDuration = 0;
-            MaterializeComponents.activeInstance.close(index);
+            MaterializeComponents.activeInstance.close(activeIndex);
             MaterializeComponents.activeInstance.options.outDuration = 300;
-            this.activePackages.splice(index, 1);
+            this.activePackages.splice(activeIndex, 1);
         },
         saveActiveStateDeleteModal: function (index) {
             // save which element should be deleted
@@ -204,11 +214,12 @@ new Vue({
             // open delete modal
             MaterializeComponents.actionModalInstance.open();
         },
-        deleteArchivePackage: function (index) {
+        deleteArchivePackage: function () {
+            var archiveIndex = this.packageState.index;
             MaterializeComponents.archiveInstance.options.outDuration = 0;
-            MaterializeComponents.archiveInstance.close(index);
+            MaterializeComponents.archiveInstance.close(archiveIndex);
             MaterializeComponents.archiveInstance.options.outDuration = 300;
-            this.archivePackages.splice(index, 1);
+            this.archivePackages.splice(archiveIndex, 1);
         },
         saveArchiveStateDeleteModal: function (index) {
             // save which element should be deleted
@@ -229,14 +240,15 @@ new Vue({
 
         movePackageFromState: function () {
             if (this.packageState.tab === "active") {
-                this.moveActivePackage(this.packageState.index);
+                this.moveActivePackage();
             } else {
-                this.moveArchivePackage(this.packageState.index);
+                this.moveArchivePackage();
             }
         },
-        moveActivePackage: function (index) {
-            this.archivePackages.push(this.activePackages[index]);
-            this.deleteActivePackage(index);
+        moveActivePackage: function () {
+            var activeIndex = this.packageState.index;
+            this.archivePackages.push(this.activePackages[activeIndex]);
+            this.deleteActivePackage();
         },
         saveActiveStateMoveModal: function (index) {
             // save which element should be moved
@@ -248,9 +260,10 @@ new Vue({
             // open delete modal
             MaterializeComponents.actionModalInstance.open();
         },
-        moveArchivePackage: function (index) {
-            this.activePackages.push(this.archivePackages[index]);
-            this.deleteArchivePackage(index);
+        moveArchivePackage: function () {
+            var archiveIndex = this.packageState.index;
+            this.activePackages.push(this.archivePackages[archiveIndex]);
+            this.deleteArchivePackage();
         },
         saveArchiveStateMoveModal: function (index) {
             // save which element should be moved
@@ -292,7 +305,7 @@ new Vue({
 
             var thisApp = this;
 
-            var end = function (response) {
+            var callback = function (response) {
                 console.log(response);
 
                 if (response === "error") {
@@ -308,6 +321,9 @@ new Vue({
                     lastRefresh: Common.formatDate(new Date())
                 });
 
+                // push this tracking number in the list with all tracking numbers
+                thisApp.allTrackingNumbers.push(thisApp.addNewPackage.trackingNumber);
+
                 // open the last added package
                 var latestPackage = thisApp.activePackages.length - 1;
                 MaterializeComponents.addModal.addModalInstance.options.onCloseEnd = function () {
@@ -318,7 +334,8 @@ new Vue({
                 MaterializeComponents.addModal.addModalInstance.close();
             };
 
-            Common.getPackage(this.addNewPackage.trackingNumber, end, end);
+            callback("error");
+            //   Common.getPackage(this.addNewPackage.trackingNumber, end, end);
         },
 
 
@@ -327,7 +344,7 @@ new Vue({
         ***********************/
 
 
-        openRefreshModal: function() {
+        openRefreshModal: function () {
             // remove refresh spinner
             MaterializeComponents.refreshModal.refreshSpinner.style.display = "none";
 
@@ -339,7 +356,7 @@ new Vue({
             MaterializeComponents.refreshModal.refreshSpinner.style.display = "block";
 
             // close the active collapsibles
-            for (var i=0; i<this.activePackages.length; i++) {
+            for (var i = 0; i < this.activePackages.length; i++) {
                 MaterializeComponents.activeInstance.close(i);
             }
 

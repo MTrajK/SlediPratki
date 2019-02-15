@@ -485,8 +485,8 @@ Common = (function () {
 
             // get the data for all active tracking numbers 
             for (var i = 0; i < activeTrackingNumbers.length; i++) {
-                storageGet([ 
-                    storageStrings.trackingNumbers + activeTrackingNumbers[i] 
+                storageGet([
+                    storageStrings.trackingNumbers + activeTrackingNumbers[i]
                 ], function (trackingNumberResponse) {
                     trackingNumberCallback(activeTrackingNumbers[i], trackingNumberResponse);
                 });
@@ -494,8 +494,8 @@ Common = (function () {
 
             // get the data for all archive tracking numbers
             for (var i = 0; i < archiveTrackingNumbers.length; i++) {
-                storageGet([ 
-                    storageStrings.trackingNumbers + archiveTrackingNumbers[i] 
+                storageGet([
+                    storageStrings.trackingNumbers + archiveTrackingNumbers[i]
                 ], function (trackingNumberResponse) {
                     trackingNumberCallback(archiveTrackingNumbers[i], trackingNumberResponse);
                 });
