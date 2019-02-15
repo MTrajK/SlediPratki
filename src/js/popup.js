@@ -115,6 +115,15 @@ new Vue({
             if (newValue !== checkValue) {
                 this.addNewPackage.trackingNumber = checkValue;
             }
+        },
+        "settings.autoRefresh": function (newValue) { 
+            Common.changeAutoRefresh(newValue);
+        },
+        "settings.refreshInterval": function (newValue) {
+            Common.changeRefreshInterval(newValue);
+        },
+        "settings.notifications": function (newValue) {
+            Common.changeEnableNotifications(newValue);
         }
     },
     computed: {
@@ -158,7 +167,12 @@ new Vue({
             MaterializeComponents.actionModalInstance.close();
         },
         removeNotifications: function (index) {
-            this.activePackages[index].notifications = 0;
+            var thisApp = this;
+            if (thisApp.activePackages[index].notifications > 0) {
+                Common.removeNotifications(thisApp.activePackages[index].trackingNumber, function(){
+                    thisApp.activePackages[index].notifications = 0;
+                });
+            }
         },
 
 
