@@ -188,6 +188,10 @@ new Vue({
 
 
         deletePackageFromState: function () {
+            /*
+            * TODO: DELETE FROM STORAGE
+           */
+
             if (this.packageState.tab === "active") {
                 this.deleteActivePackage();
             } else {
@@ -239,6 +243,10 @@ new Vue({
 
 
         movePackageFromState: function () {
+            /*
+            * TODO: MOVE IN STORAGE
+            */
+
             if (this.packageState.tab === "active") {
                 this.moveActivePackage();
             } else {
@@ -303,6 +311,10 @@ new Vue({
             // add spinner
             MaterializeComponents.addModal.addSpinner.style.display = "block";
 
+            /*
+            * TODO: ADD IN STORAGE
+            */
+
             var thisApp = this;
 
             var callback = function (response) {
@@ -360,6 +372,10 @@ new Vue({
                 MaterializeComponents.activeInstance.close(i);
             }
 
+            /*
+            * TODO: REFRESH IN STORAGE
+            */
+
             // close modal after 3 seconds
             setTimeout(function () {
                 MaterializeComponents.refreshModal.refreshModalInstance.close();
@@ -373,6 +389,10 @@ new Vue({
 
 
         editPackageFromState: function () {
+            /*
+            * TODO: EDIT IN STORAGE
+            */
+
             if (this.packageState.tab === "active") {
                 this.editActivePackage();
             } else {
