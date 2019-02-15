@@ -104,7 +104,7 @@ new Vue({
 
             // set settings values
             this.settings.autoRefresh = true;
-            this.settings.refreshInterval = 24;
+            this.settings.refreshInterval = 4;
             this.settings.enableNotifications = true;
             this.settings.maxActivePackages = 20;
             this.settings.maxArchivePackages = 15;
@@ -357,6 +357,25 @@ new Vue({
                     status: "local_shipping",
                     notifications: 0,
                     trackingData: []
+                    /*
+                    // example data
+                    [{
+                        date: "15 Февруари 2019, 22:04:04",
+                        begining: "MKSPG",
+                        end: "",
+                        notice: "Пристигната во наизменична пошта"
+                    }, {
+                        date: "15 Февруари 2019, 22:04:04",
+                        begining: "Skopje IO 1003",
+                        end: "1020",
+                        notice: "Во пошта"
+                    }, {
+                        date: "15 Февруари 2019, 22:04:04",
+                        begining: "Skopje -20 1020",
+                        end: "Dostava",
+                        notice: "Испорачана"
+                    }]
+                    */
                 });
 
                 // push this tracking number in the list with all tracking numbers

@@ -46,22 +46,47 @@
                                 <p class="collapsible-header-text">{{activePackage.packageDescription.length ?
                                     activePackage.packageDescription : activePackage.trackingNumber}}</p>
                             </div>
-                            <div class="col s1-5-new right-align badge-padding" v-if="activePackage.notifications">
+                            <div class="col s1-5-new right-align badge-padding" v-show="activePackage.notifications">
                                 <span class="my-badge">{{activePackage.notifications}}</span>
                             </div>
                         </div>
-                        <div class="collapsible-body">
-                            <p>Број на пратка: {{activePackage.trackingNumber}}</p>
-                            <p>Опис на пратка: {{activePackage.packageDescription.length ?
-                                activePackage.packageDescription : "/"}}</p>
-                            <p>Последно обновена: {{activePackage.lastRefresh}}</p>
-                            <a class="waves-effect waves-dark btn-flat" v-on:click="saveActiveStateEditModal(index)">
-                                <i class="material-icons">edit</i></a>
-                            <a class="waves-effect waves-dark btn-flat" v-on:click="saveActiveStateMoveModal(index)"
-                                v-bind:class="{ disabled: disableNewArchive }">
-                                <i class="material-icons">archive</i></a>
-                            <a class="waves-effect waves-dark btn-flat" v-on:click="saveActiveStateDeleteModal(index)">
-                                <i class="material-icons">delete_forever</i></a>
+                        <div class="collapsible-body collapsible-body-padding">
+
+                            <div class="package-description">
+                                <p class="collapsible-desc">Број на пратка: <span class="bold-desc">{{activePackage.trackingNumber}}</span></p>
+                                <p class="collapsible-desc">Опис на пратка: <span class="bold-desc">{{activePackage.packageDescription.length
+                                        ? activePackage.packageDescription : "/"}}</span></p>
+                                <p class="collapsible-desc">Обновена: <span class="bold-desc">{{activePackage.lastRefresh}}</span></p>
+                            </div>
+
+                            <div class="package-actions right">
+                                <a class="waves-effect waves-light btn my-yellow-button" v-on:click="saveActiveStateEditModal(index)">
+                                    <i class="material-icons">edit</i></a>
+                                <a class="waves-effect waves-light btn my-yellow-button" v-on:click="saveActiveStateMoveModal(index)"
+                                    v-bind:class="{ disabled: disableNewArchive }">
+                                    <i class="material-icons">archive</i></a>
+                                <a class="waves-effect waves-light btn my-yellow-button" v-on:click="saveActiveStateDeleteModal(index)">
+                                    <i class="material-icons">delete_forever</i></a>
+                            </div>
+
+                            <div class="package-tracking-data">
+                                <ul>
+                                    <li class="tracking-data-list" v-for="packageTrackingData in activePackage.trackingData">
+                                        <div><i class="material-icons tracking-data-icon-size">access_time</i>
+                                            {{ packageTrackingData.date }}</div>
+                                        <div><i class="material-icons tracking-data-icon-size">location_on</i>
+                                            {{ packageTrackingData.begining }}
+                                            <i class="material-icons tracking-data-icon-size" v-show="packageTrackingData.end">arrow_forward</i>
+                                            {{ packageTrackingData.end }} </div>
+                                        <div><i class="material-icons tracking-data-icon-size">notes</i>
+                                            {{ packageTrackingData.notice }}</div>
+                                    </li>
+                                    <li class="no-tracking-data-list" v-if="!activePackage.trackingData.length">
+                                        <div> Не се пронајдени податоци </div>
+                                    </li>
+                                </ul>
+                            </div>
+
                         </div>
                     </li>
                 </ul>
@@ -73,10 +98,10 @@
                     <ul>
                         <li><a class="btn-floating waves-effect waves-light btn-small my-red" v-on:click="openAddModal"
                                 v-bind:class="{ disabled: disableNewActive }">
-                                <i class="material-icons">add</i></a></li>
+                                <i class="material-icons floating-button-icon">add</i></a></li>
                         <li><a class="btn-floating waves-effect waves-light btn-small my-red" v-on:click="openRefreshModal"
                                 v-bind:class="{ disabled: disableRefreshing }">
-                                <i class="material-icons">sync</i></a></li>
+                                <i class="material-icons floating-button-icon">refresh</i></a></li>
                     </ul>
                 </div>
 
@@ -101,18 +126,43 @@
                                     archivePackage.packageDescription : archivePackage.trackingNumber}}</p>
                             </div>
                         </div>
-                        <div class="collapsible-body">
-                            <p>Број на пратка: {{archivePackage.trackingNumber}}</p>
-                            <p>Опис на пратка: {{archivePackage.packageDescription.length ?
-                                archivePackage.packageDescription : "/"}}</p>
-                            <p>Последно обновена: {{archivePackage.lastRefresh}}</p>
-                            <a class="waves-effect waves-dark btn-flat" v-on:click="saveArchiveStateEditModal(index)">
-                                <i class="material-icons">edit</i></a>
-                            <a class="waves-effect waves-dark btn-flat" v-on:click="saveArchiveStateMoveModal(index)"
-                                v-bind:class="{ disabled: disableNewActive }">
-                                <i class="material-icons">unarchive</i></a>
-                            <a class="waves-effect waves-dark btn-flat" v-on:click="saveArchiveStateDeleteModal(index)">
-                                <i class="material-icons">delete_forever</i></a>
+                        <div class="collapsible-body collapsible-body-padding">
+
+                            <div class="package-description">
+                                <p class="collapsible-desc">Број на пратка: <span class="bold-desc">{{archivePackage.trackingNumber}}</span></p>
+                                <p class="collapsible-desc">Опис на пратка: <span class="bold-desc">{{archivePackage.packageDescription.length
+                                        ? archivePackage.packageDescription : "/"}}</span></p>
+                                <p class="collapsible-desc">Обновена: <span class="bold-desc">{{archivePackage.lastRefresh}}</span></p>
+                            </div>
+
+                            <div class="package-actions right">
+                                <a class="waves-effect waves-light btn my-yellow-button" v-on:click="saveArchiveStateEditModal(index)">
+                                    <i class="material-icons">edit</i></a>
+                                <a class="waves-effect waves-light btn my-yellow-button" v-on:click="saveArchiveStateMoveModal(index)"
+                                    v-bind:class="{ disabled: disableNewActive }">
+                                    <i class="material-icons">unarchive</i></a>
+                                <a class="waves-effect waves-light btn my-yellow-button" v-on:click="saveArchiveStateDeleteModal(index)">
+                                    <i class="material-icons">delete_forever</i></a>
+                            </div>
+
+                            <div class="package-tracking-data">
+                                <ul>
+                                    <li class="tracking-data-list" v-for="packageTrackingData in archivePackage.trackingData">
+                                        <div><i class="material-icons tracking-data-icon-size">access_time</i>
+                                            {{ packageTrackingData.date }}</div>
+                                        <div><i class="material-icons tracking-data-icon-size">location_on</i>
+                                            {{ packageTrackingData.begining }}
+                                            <i class="material-icons tracking-data-icon-size" v-show="packageTrackingData.end">arrow_forward</i>
+                                            {{ packageTrackingData.end }} </div>
+                                        <div><i class="material-icons tracking-data-icon-size">notes</i>
+                                            {{ packageTrackingData.notice }}</div>
+                                    </li>
+                                    <li class="no-tracking-data-list" v-if="!archivePackage.trackingData.length">
+                                        <div> Не се пронајдени податоци </div>
+                                    </li>
+                                </ul>
+                            </div>
+
                         </div>
                     </li>
                 </ul>
