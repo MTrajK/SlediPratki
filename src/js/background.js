@@ -21,14 +21,14 @@
     */
     var refreshData = function (storageResults) {
         // log the refreshing time for debug
-        console.log("Background refresh: " + (new Date()).toLocaleString());
+        console.log("SlediPratki: Background refresh: " + (new Date()).toLocaleString());
 
         // break if the auto refresh is disabled
         if (!storageResults[Common.storageStrings.autoRefresh])
             return;
 
         // how many milliseconds passed from the last refresh till now
-        var diffRefresh = Common.dateDiff(new Date(storageResults[Common.storageStrings.lastRefresh]), new Date());
+        var diffRefresh = Common.dateDiff(storageResults[Common.storageStrings.lastRefresh], new Date());
         var refreshInterval = storageResults[Common.storageStrings.refreshInterval] * oneHourMillis;
 
         // minus one second just in case (to handle small variations)
@@ -69,7 +69,7 @@
         Common.setBadge(storageResults[Common.storageStrings.totalNotifications]);
 
         // how many milliseconds passed from the last refresh till now
-        var diffRefresh = Common.dateDiff(new Date(storageResults[Common.storageStrings.lastRefresh]), new Date());
+        var diffRefresh = Common.dateDiff(storageResults[Common.storageStrings.lastRefresh], new Date());
         var refreshInterval = storageResults[Common.storageStrings.refreshInterval] * oneHourMillis;
 
         if (refreshInterval <= diffRefresh) {
@@ -109,5 +109,5 @@
     * 0. Start the background scripts.
     */
     Common.storageGet([Common.storageStrings.version], checkVersion);
-    
+
 })();

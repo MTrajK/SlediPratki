@@ -29,6 +29,10 @@ Common = (function () {
     * Format a Date() object to string: "DD Month YYY, HH:MM:SS".
     */
     var formatDate = function (date) {
+        if (typeof date === "string") {
+            date = new Date(date);
+        }
+
         return addZero(date.getDate()) + " "
             + months[date.getMonth()] + " "
             + date.getFullYear() + ", "
@@ -169,6 +173,13 @@ Common = (function () {
     * Passed miliseconds from firstDate to secondDate. (secondDate - firstDate)
     */
     var dateDiff = function (firstDate, secondDate) {
+        if (typeof firstDate === "string") {
+            firstDate = new Date(firstDate);
+        }
+        if (typeof secondDate === "string") {
+            secondDate = new Date(secondDate);
+        }
+
         return secondDate.getTime() - firstDate.getTime();
     };
 
@@ -196,6 +207,8 @@ Common = (function () {
 
                     // if there is a new result and something new in that result
                     if (newResult !== "error" && newResult.length > updateOldResult.trackingData.length) {
+                        // don't update only the trackingNumber and packageDescription for this package! 
+
                         // update notifications for this tracking number
                         var newLocalNotifications = newResult.length - updateOldResult.trackingData.length;
                         newNotifications += newLocalNotifications;
@@ -243,7 +256,7 @@ Common = (function () {
                         }
 
                         // run the outside callback() method if there is one
-                        if (callback) {
+                        if (callback && (typeof callback === "function")) {
                             callback();
                         }
                     }
@@ -275,10 +288,11 @@ Common = (function () {
 
                 // create the new package
                 var newPackage = {};
-                newPackage.lastRefresh = dateNowJSON();
-                newPackage.notifications = 0;
-                newPackage.status = getStatusOfTrackingData(apiResponse);
+                newPackage.trackingNumber = trackingNumber;
                 newPackage.packageDescription = packageDescription;
+                newPackage.lastRefresh = dateNowJSON();
+                newPackage.status = getStatusOfTrackingData(apiResponse);
+                newPackage.notifications = 0;
                 newPackage.trackingData = apiResponse;
 
                 // update active tracking numbers list and add the new package
@@ -288,7 +302,9 @@ Common = (function () {
 
                 storageSet(updateStorage, function () {
                     // send the new package to the callback method
-                    callback(newPackage);
+                    if (callback && (typeof callback === "function")) {
+                        callback(newPackage);
+                    }
                 });
             });
         };
@@ -512,7 +528,9 @@ Common = (function () {
                     result[storageStrings.maxArchivePackages] = response[storageStrings.maxArchivePackages];
                     result[storageStrings.trackingNumbers] = allTrackingNumbers;
 
-                    callback(result);
+                    if (callback && (typeof callback === "function")) {
+                        callback(result);
+                    }
                 }
             };
 

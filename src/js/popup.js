@@ -40,11 +40,11 @@ new Vue({
             oldPackageDescription: ""
         },
         settings: {
-            autoRefresh: true,
-            refreshInterval: 1,
-            enableNotifications: true,
-            maxActivePackages: 20,
-            maxArchivePackages: 15
+            autoRefresh: undefined,
+            refreshInterval: undefined,
+            enableNotifications: undefined,
+            maxActivePackages: undefined,
+            maxArchivePackages: undefined
         },
         allTrackingNumbers: [],
         activePackages: [],
@@ -102,6 +102,14 @@ new Vue({
             // remove the main spiner after loading the whole info and init all components
             MaterializeComponents.mainSpinner = this.$el.querySelector("#main_spinner");
 
+            // set settings values
+            this.settings.autoRefresh = true;
+            this.settings.refreshInterval = 24;
+            this.settings.enableNotifications = true;
+            this.settings.maxActivePackages = 20;
+            this.settings.maxArchivePackages = 15;
+            this.updateRefreshIntervalSelect();
+
             /*
             * TODO: GET STORAGE
             */
@@ -120,14 +128,20 @@ new Vue({
                 this.addNewPackage.trackingNumber = checkValue;
             }
         },
-        "settings.autoRefresh": function (newValue) {
-            Common.changeAutoRefresh(newValue);
+        "settings.autoRefresh": function (newVal, oldVal) {
+            if (oldVal !== undefined) {
+                Common.changeAutoRefresh(newVal);
+            }
         },
-        "settings.refreshInterval": function (newValue) {
-            Common.changeRefreshInterval(newValue);
+        "settings.refreshInterval": function (newVal, oldVal) {
+            if (oldVal !== undefined) {
+                Common.changeRefreshInterval(newVal);
+            }
         },
-        "settings.enableNotifications": function (newValue) {
-            Common.changeEnableNotifications(newValue);
+        "settings.enableNotifications": function (newVal, oldVal) {
+            if (oldVal !== undefined) {
+                Common.changeEnableNotifications(newVal);
+            }
         }
     },
     computed: {
@@ -161,7 +175,18 @@ new Vue({
         **   COMMON METHODS  **
         ***********************/
 
-
+        updateRefreshIntervalSelect: function () {
+            // update this select by hand (materialize doesn't handle vue property change)
+            var nOptions = MaterializeComponents.refreshIntervalInstance.$selectOptions.length;
+            for (var i = 0; i < nOptions; i++) {
+                if (MaterializeComponents.refreshIntervalInstance.$selectOptions[i].value == this.settings.refreshInterval) {
+                    MaterializeComponents.refreshIntervalInstance.$selectOptions[i].selected = true;
+                } else {
+                    MaterializeComponents.refreshIntervalInstance.$selectOptions[i].selected = false;
+                }
+            }
+            MaterializeComponents.refreshIntervalInstance._setValueToInput();
+        },
         updateFromState: function () {
             if (this.packageState.action === "move") {
                 this.movePackageFromState();
@@ -328,9 +353,10 @@ new Vue({
                 thisApp.activePackages.push({
                     trackingNumber: thisApp.addNewPackage.trackingNumber,
                     packageDescription: thisApp.addNewPackage.packageDescription,
+                    lastRefresh: Common.formatDate(new Date()),
                     status: "local_shipping",
                     notifications: 0,
-                    lastRefresh: Common.formatDate(new Date())
+                    trackingData: []
                 });
 
                 // push this tracking number in the list with all tracking numbers
