@@ -20,6 +20,9 @@
     * 6. Refresh the data.
     */
     var refreshData = function (storageResults) {
+        // log the refreshing time for debug
+        console.log("Background refresh: " + (new Date()).toLocaleString());
+
         // break if the auto refresh is disabled
         if (!storageResults[Common.storageStrings.autoRefresh])
             return;

@@ -9,7 +9,7 @@
         "32": "img/icon32.png",
         "48": "img/icon48.png",
         "128": "img/icon128.png"
-      },
+    },
 
     "browser_action": {
         "default_popup": "html/popup.html",
@@ -18,21 +18,25 @@
             "32": "img/icon32.png",
             "48": "img/icon48.png",
             "128": "img/icon128.png"
-          },
+        },
         "default_title": "Следи Пратки"
     },
 
-    "background":{
-    	"scripts": ["js/axios.min.js", "js/common.js", "js/background.js"],
-    	"persistent": false
+    "background": {
+        "scripts": [
+            "js/axios.min.js",
+            "js/common.js",
+            "js/background.js"
+        ],
+        "persistent": true
     },
-    
+
     "permissions": [
         "https://www.posta.com.mk/*",
         "storage",
         "contextMenus",
         "notifications"
     ],
-
+    
     "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
-  }
+}
