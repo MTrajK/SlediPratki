@@ -68,9 +68,10 @@ Common = (function () {
         var length = xmlDoc.getElementsByTagName("TrackingData").length;
 
         // look only for Begining, End, Date and Notice tags (those are used by app)
+        // i'm using beginning (with two n) in the code
         for (var i = 0; i < length; i++) {
             result.push({
-                begining: xmlDoc.getElementsByTagName("Begining")[i].childNodes[0].nodeValue,
+                beginning: xmlDoc.getElementsByTagName("Begining")[i].childNodes[0].nodeValue,
                 end: xmlDoc.getElementsByTagName("End")[i].childNodes[0].nodeValue,
                 date: xmlDoc.getElementsByTagName("Date")[i].childNodes[0].nodeValue,
                 notice: xmlDoc.getElementsByTagName("Notice")[i].childNodes[0].nodeValue
@@ -97,6 +98,47 @@ Common = (function () {
             default:
                 return notice;
         }
+    };
+
+    /**
+    * Formats dates and notice text.
+    * Return the package data in this JSON format:
+    *    {
+    *        trackingNumber: string,
+    *        packageDescription: string,
+    *        lastRefresh: formatDate(string or Date),
+    *        status: string,
+    *        notifications: integer,
+    *        trackingData: [{
+    *            date: formatDate(string or Date)),
+    *            beginning: string,
+    *            end: string,
+    *            notice: formatNoticeText(string)
+    *        }]
+    *    }
+    */
+    var formatPackageData = function (packageData) {
+        var result = {};
+
+        result.trackingNumber = packageData.trackingNumber;
+        result.packageDescription = packageData.packageDescription;
+        result.lastRefresh = formatDate(packageData.lastRefresh);
+        result.status = packageData.status;
+        result.notifications = packageData.notifications;
+        result.trackingData = [];
+
+        for (var i = 0; i < packageData.trackingData.length; i++) {
+            var dataRow = packageData.trackingData[i];
+
+            result.trackingData.push({
+                date: formatDate(dataRow.date),
+                beginning: dataRow.beginning,
+                end: dataRow.end,
+                notice: formatNoticeText(dataRow.notice)
+            });
+        }
+
+        return result;
     };
 
     /**
@@ -495,7 +537,7 @@ Common = (function () {
     /**
     * Get all info needed for the app.
     */
-    var getStorage = function (callback) {
+    var getAllData = function (callback) {
         storageGet([
             storageStrings.activeTrackingNumbers,
             storageStrings.archiveTrackingNumbers,
@@ -509,23 +551,27 @@ Common = (function () {
             var addedTrackingNumbers = 0;
             var activeTrackingNumbers = response[storageStrings.activeTrackingNumbers];
             var archiveTrackingNumbers = response[storageStrings.archiveTrackingNumbers];
-            var totalTrackingNumbers = activeTrackingNumbersLength.length + archiveTrackingNumbersLength.length;
+            var totalTrackingNumbers = activeTrackingNumbers.length + archiveTrackingNumbers.length;
 
+            // save the results that needed to be returnet to the callback method
+            var result = {};
+            result[storageStrings.trackingNumbers] = allTrackingNumbers;
+            result[storageStrings.activeTrackingNumbers] = activeTrackingNumbers;
+            result[storageStrings.archiveTrackingNumbers] = archiveTrackingNumbers;
+            result[storageStrings.autoRefresh] = response[storageStrings.autoRefresh];
+            result[storageStrings.refreshInterval] = response[storageStrings.refreshInterval];
+            result[storageStrings.enableNotifications] = response[storageStrings.enableNotifications];
+            result[storageStrings.maxActivePackages] = response[storageStrings.maxActivePackages];
+            result[storageStrings.maxArchivePackages] = response[storageStrings.maxArchivePackages];
+
+            // callback function to save all tracking numbers
             var trackingNumberCallback = function (trackingNumber, trackingNumberResponse) {
                 // get all info from the storage for this tracking number
                 allTrackingNumbers[trackingNumber] = trackingNumberResponse[storageStrings.trackingNumbers + trackingNumber];
 
                 addedTrackingNumbers++;
                 if (addedTrackingNumbers === totalTrackingNumbers) {
-                    // in this case, this is the last tracking number
-                    // save the results and return them to the callback method
-                    var result = {};
-                    result[storageStrings.activeTrackingNumbers] = activeTrackingNumbers;
-                    result[storageStrings.archiveTrackingNumbers] = archiveTrackingNumbers;
-                    result[storageStrings.autoRefresh] = response[storageStrings.autoRefresh];
-                    result[storageStrings.enableNotifications] = response[storageStrings.enableNotifications];
-                    result[storageStrings.maxActivePackages] = response[storageStrings.maxActivePackages];
-                    result[storageStrings.maxArchivePackages] = response[storageStrings.maxArchivePackages];
+                    // in this case, this is the last tracking number so update the tracking number list
                     result[storageStrings.trackingNumbers] = allTrackingNumbers;
 
                     if (callback && (typeof callback === "function")) {
@@ -550,6 +596,11 @@ Common = (function () {
                 ], function (trackingNumberResponse) {
                     trackingNumberCallback(archiveTrackingNumbers[i], trackingNumberResponse);
                 });
+            } 
+
+            // return the result if there are 0 tracking numbers
+            if (totalTrackingNumbers == 0 && callback && (typeof callback === "function")) {
+                callback(result);
             }
         });
     };
@@ -558,6 +609,7 @@ Common = (function () {
         storageStrings: storageStrings,
         formatDate: formatDate,
         formatNoticeText: formatNoticeText,
+        formatPackageData: formatPackageData,
         getStatusOfTrackingData: getStatusOfTrackingData,
         getPackage: getPackage,
         storageGet: storageGet,
@@ -576,6 +628,6 @@ Common = (function () {
         changeRefreshInterval: changeRefreshInterval,
         changeEnableNotifications: changeEnableNotifications,
         removeNotifications: removeNotifications,
-        getStorage: getStorage
+        getAllData: getAllData
     };
 })();

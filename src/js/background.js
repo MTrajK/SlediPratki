@@ -21,7 +21,7 @@
     */
     var refreshData = function (storageResults) {
         // log the refreshing time for debug
-        console.log("SlediPratki: Background refresh: " + (new Date()).toLocaleString());
+        console.log("SlediPratki - Background refresh: " + (new Date()).toLocaleString());
 
         // break if the auto refresh is disabled
         if (!storageResults[Common.storageStrings.autoRefresh])

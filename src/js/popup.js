@@ -106,21 +106,44 @@ new Vue({
             // tooltips
             MaterializeComponents.leftTooltipInstances = M.Tooltip.init(this.$el.querySelectorAll(".left-tooltip"));
 
-            // set settings values
-            this.settings.autoRefresh = true;
-            this.settings.refreshInterval = 4;
-            this.settings.enableNotifications = true;
-            this.settings.maxActivePackages = 20;
-            this.settings.maxArchivePackages = 15;
-            this.updateRefreshIntervalSelect();
+            // get all data from the storage
+            var thisApp = this;
+            Common.getAllData(function (response) {
+                // get all settings properties
+                thisApp.settings.autoRefresh = response[Common.storageStrings.autoRefresh];
+                thisApp.settings.refreshInterval = response[Common.storageStrings.refreshInterval];
+                thisApp.settings.enableNotifications = response[Common.storageStrings.enableNotifications];
+                thisApp.settings.maxActivePackages = response[Common.storageStrings.maxActivePackages];
+                thisApp.settings.maxArchivePackages = response[Common.storageStrings.maxArchivePackages];
 
-            /*
-            * TODO: GET STORAGE
-            */
-            setTimeout(function () {
+                // all packages with data
+                var allTrackingNumbers = response[Common.storageStrings.trackingNumbers];
+
+                // get all active packages
+                var activeTrackingNumbers = response[Common.storageStrings.activeTrackingNumbers];
+                for (var i = 0; i < activeTrackingNumbers.length; i++) {
+                    var formatedPackageData = Common.formatPackageData(allTrackingNumbers[activeTrackingNumbers[i]]);
+                    thisApp.activeTrackingNumbers.push(formatedPackageData);
+                    thisApp.allTrackingNumbers.push(activeTrackingNumbers[i]);
+                }
+
+                // get all archived packages
+                var archiveTrackingNumbers = response[Common.storageStrings.archiveTrackingNumbers];
+                for (var i = 0; i < archiveTrackingNumbers.length; i++) {
+                    var formatedPackageData = Common.formatPackageData(allTrackingNumbers[archiveTrackingNumbers[i]]);
+                    thisApp.archiveTrackingNumbers.push(formatedPackageData);
+                    thisApp.allTrackingNumbers.push(archiveTrackingNumbers[i]);
+                }
+
+                // update the refresh interval select manually
+                thisApp.updateRefreshIntervalSelect();
+
                 // remove the main spiner after loading the whole info and init all components
-                MaterializeComponents.mainSpinner.style.display = "none";
-            }, 1500);
+                // show it just little, to be noticed (looks good)
+                setTimeout(function () {
+                    MaterializeComponents.mainSpinner.style.display = "none";
+                }, 1000);
+            });
         })
     },
     watch: {
@@ -181,7 +204,7 @@ new Vue({
         ***********************/
 
         updateRefreshIntervalSelect: function () {
-            // update this select by hand (materialize doesn't handle vue property change)
+            // update this select manually (materialize doesn't handle vue property change)
             var nOptions = MaterializeComponents.refreshIntervalInstance.$selectOptions.length;
             for (var i = 0; i < nOptions; i++) {
                 if (MaterializeComponents.refreshIntervalInstance.$selectOptions[i].value == this.settings.refreshInterval) {
@@ -366,17 +389,17 @@ new Vue({
                     // example data
                     [{
                         date: "15 Февруари 2019, 22:04:04",
-                        begining: "MKSPG",
+                        beginning: "MKSPG",
                         end: "",
                         notice: "Пристигната во наизменична пошта"
                     }, {
                         date: "15 Февруари 2019, 22:04:04",
-                        begining: "Skopje IO 1003",
+                        beginning: "Skopje IO 1003",
                         end: "1020",
                         notice: "Во пошта"
                     }, {
                         date: "15 Февруари 2019, 22:04:04",
-                        begining: "Skopje -20 1020",
+                        beginning: "Skopje -20 1020",
                         end: "Dostava",
                         notice: "Испорачана"
                     }]
