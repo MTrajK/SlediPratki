@@ -21,6 +21,7 @@ var MaterializeComponents = {
         packageDescriptionLabel: undefined
     },
     actionModalInstance: undefined,
+    leftTooltipInstances: undefined,
     mainSpinner: undefined
 };
 
@@ -99,8 +100,11 @@ new Vue({
             MaterializeComponents.editModal.packageDescriptionInput = this.$el.querySelector("#edit_package_description");
             MaterializeComponents.editModal.packageDescriptionLabel = this.$el.querySelector("#edit_package_description_label");
 
-            // remove the main spiner after loading the whole info and init all components
+            // main spinner
             MaterializeComponents.mainSpinner = this.$el.querySelector("#main_spinner");
+
+            // tooltips
+            MaterializeComponents.leftTooltipInstances = M.Tooltip.init(this.$el.querySelectorAll(".left-tooltip"));
 
             // set settings values
             this.settings.autoRefresh = true;
@@ -114,6 +118,7 @@ new Vue({
             * TODO: GET STORAGE
             */
             setTimeout(function () {
+                // remove the main spiner after loading the whole info and init all components
                 MaterializeComponents.mainSpinner.style.display = "none";
             }, 1500);
         })

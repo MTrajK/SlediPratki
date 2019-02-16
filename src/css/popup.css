@@ -376,6 +376,10 @@ input.select-dropdown.dropdown-trigger {
     color: #50565d;
 }
 
+.material-tooltip {
+    z-index: 100;
+}
+
 /*
 .collapsible-header {
     background-color: #FFFDE7;

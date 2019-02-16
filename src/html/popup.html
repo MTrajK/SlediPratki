@@ -96,10 +96,12 @@
                         <i class="large material-icons">menu</i>
                     </a>
                     <ul>
-                        <li><a class="btn-floating waves-effect waves-light btn-small my-red" v-on:click="openAddModal"
+                        <li><a class="btn-floating waves-effect waves-light btn-small my-red left-tooltip"
+                                data-position="left" data-tooltip="Додади пратка" v-on:click="openAddModal"
                                 v-bind:class="{ disabled: disableNewActive }">
                                 <i class="material-icons floating-button-icon">add</i></a></li>
-                        <li><a class="btn-floating waves-effect waves-light btn-small my-red" v-on:click="openRefreshModal"
+                        <li><a class="btn-floating waves-effect waves-light btn-small my-red left-tooltip"
+                                data-position="left" data-tooltip="Обнови пратки" v-on:click="openRefreshModal"
                                 v-bind:class="{ disabled: disableRefreshing }">
                                 <i class="material-icons floating-button-icon">refresh</i></a></li>
                     </ul>
