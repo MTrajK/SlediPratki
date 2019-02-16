@@ -56,7 +56,7 @@
                                 <p class="collapsible-desc">Број на пратка: <span class="bold-desc">{{activePackage.trackingNumber}}</span></p>
                                 <p class="collapsible-desc">Опис на пратка: <span class="bold-desc">{{activePackage.packageDescription.length
                                         ? activePackage.packageDescription : "/"}}</span></p>
-                                <p class="collapsible-desc">Обновена: <span class="bold-desc">{{activePackage.lastRefresh}}</span></p>
+                                <p class="collapsible-desc">Освежена: <span class="bold-desc">{{activePackage.lastRefresh}}</span></p>
                             </div>
 
                             <div class="package-actions right">
@@ -97,11 +97,10 @@
                     </a>
                     <ul>
                         <li><a class="btn-floating waves-effect waves-light btn-small my-red left-tooltip"
-                                data-position="left" data-tooltip="Додади пратка" v-on:click="openAddModal"
-                                v-bind:class="{ disabled: disableNewActive }">
+                                data-position="left" data-tooltip="Додај пратка" v-on:click="openAddModal" v-bind:class="{ disabled: disableNewActive }">
                                 <i class="material-icons floating-button-icon">add</i></a></li>
                         <li><a class="btn-floating waves-effect waves-light btn-small my-red left-tooltip"
-                                data-position="left" data-tooltip="Обнови пратки" v-on:click="openRefreshModal"
+                                data-position="left" data-tooltip="Освежи податоци" v-on:click="openRefreshModal"
                                 v-bind:class="{ disabled: disableRefreshing }">
                                 <i class="material-icons floating-button-icon">refresh</i></a></li>
                     </ul>
@@ -134,7 +133,7 @@
                                 <p class="collapsible-desc">Број на пратка: <span class="bold-desc">{{archivePackage.trackingNumber}}</span></p>
                                 <p class="collapsible-desc">Опис на пратка: <span class="bold-desc">{{archivePackage.packageDescription.length
                                         ? archivePackage.packageDescription : "/"}}</span></p>
-                                <p class="collapsible-desc">Обновена: <span class="bold-desc">{{archivePackage.lastRefresh}}</span></p>
+                                <p class="collapsible-desc">Освежена: <span class="bold-desc">{{archivePackage.lastRefresh}}</span></p>
                             </div>
 
                             <div class="package-actions right">
@@ -178,7 +177,7 @@
                 <div class="row settings-view">
 
                     <div class="col s8 settings-text settings-margin">
-                        Автоматско обновување
+                        Автоматско освежување
                     </div>
                     <div class="col s4 settings-margin">
                         <div class="switch">
@@ -190,7 +189,7 @@
                     </div>
 
                     <div class="col s8 settings-text settings-margin settings-interval">
-                        Интервал на обновување:
+                        Интервал на освежување:
                     </div>
                     <div class="input-field col s4 settings-margin">
                         <select id="refreshInterval" v-model="settings.refreshInterval">
@@ -280,7 +279,7 @@
         <!-- ADD PACKAGE MODAL -->
         <div id="addModal" class="modal bottom-sheet">
             <div class="modal-content">
-                <div class="add-text">Додади нова пратка</div>
+                <div class="add-text">Додај нова пратка</div>
                 <div class="input-field">
                     <input id="tracking_number" type="text" v-model="addNewPackage.trackingNumber" maxlength="20">
                     <label id="tracking_number_label" class="active" for="tracking_number">Број на пратка</label>
@@ -293,7 +292,7 @@
             </div>
             <div class="modal-footer">
                 <a class="modal-close waves-effect waves-dark btn-flat">Откажи</a>
-                <a class="waves-effect waves-dark btn-flat" v-on:click="addNewActivePackage" v-bind:class="{ disabled: disableAdding }">Додади</a>
+                <a class="waves-effect waves-dark btn-flat" v-on:click="addNewActivePackage" v-bind:class="{ disabled: disableAdding }">Додај</a>
             </div>
 
             <!-- ADD SPINNER -->
@@ -321,11 +320,11 @@
         <!-- REFRESH PACKAGES MODAL -->
         <div id="refreshModal" class="modal bottom-sheet">
             <div class="modal-content">
-                <div class="add-text">Обнови ги податоците за пратките</div>
+                <div class="add-text">Освежи ги податоците за пратките</div>
             </div>
             <div class="modal-footer">
                 <a class="modal-close waves-effect waves-dark btn-flat">Откажи</a>
-                <a class="waves-effect waves-dark btn-flat" v-on:click="refreshPackages">Обнови</a>
+                <a class="waves-effect waves-dark btn-flat" v-on:click="refreshPackages">Освежи</a>
             </div>
 
             <!-- REFRESH SPINNER -->
