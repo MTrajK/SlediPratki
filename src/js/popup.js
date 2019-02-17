@@ -22,6 +22,7 @@ var MaterializeComponents = {
     },
     actionModalInstance: undefined,
     leftTooltipInstances: undefined,
+    scrollableContent: undefined,
     mainSpinner: undefined
 };
 
@@ -100,11 +101,14 @@ new Vue({
             MaterializeComponents.editModal.packageDescriptionInput = this.$el.querySelector("#edit_package_description");
             MaterializeComponents.editModal.packageDescriptionLabel = this.$el.querySelector("#edit_package_description_label");
 
-            // main spinner
-            MaterializeComponents.mainSpinner = this.$el.querySelector("#main_spinner");
-
             // tooltips
             MaterializeComponents.leftTooltipInstances = M.Tooltip.init(this.$el.querySelectorAll(".left-tooltip"));
+
+            // scrollable content
+            MaterializeComponents.scrollableContent = this.$el.querySelector("#scrollable-content");
+
+            // main spinner
+            MaterializeComponents.mainSpinner = this.$el.querySelector("#main_spinner");
 
             // get all data from the storage
             var thisApp = this;
@@ -117,21 +121,21 @@ new Vue({
                 thisApp.settings.maxArchivePackages = response[Common.storageStrings.maxArchivePackages];
 
                 // all packages with data
-                var allTrackingNumbers = response[Common.storageStrings.trackingNumbers];
+                var allPackagesWithData = response[Common.storageStrings.trackingNumbers];
 
                 // get all active packages
                 var activeTrackingNumbers = response[Common.storageStrings.activeTrackingNumbers];
                 for (var i = 0; i < activeTrackingNumbers.length; i++) {
-                    var formatedPackageData = Common.formatPackageData(allTrackingNumbers[activeTrackingNumbers[i]]);
-                    thisApp.activeTrackingNumbers.push(formatedPackageData);
+                    var formatedPackageData = Common.formatPackageData(allPackagesWithData[activeTrackingNumbers[i]]);
+                    thisApp.activePackages.push(formatedPackageData);
                     thisApp.allTrackingNumbers.push(activeTrackingNumbers[i]);
                 }
 
                 // get all archived packages
                 var archiveTrackingNumbers = response[Common.storageStrings.archiveTrackingNumbers];
                 for (var i = 0; i < archiveTrackingNumbers.length; i++) {
-                    var formatedPackageData = Common.formatPackageData(allTrackingNumbers[archiveTrackingNumbers[i]]);
-                    thisApp.archiveTrackingNumbers.push(formatedPackageData);
+                    var formatedPackageData = Common.formatPackageData(allPackagesWithData[archiveTrackingNumbers[i]]);
+                    thisApp.archivePackages.push(formatedPackageData);
                     thisApp.allTrackingNumbers.push(archiveTrackingNumbers[i]);
                 }
 
@@ -180,7 +184,9 @@ new Vue({
                 this.allTrackingNumbers.indexOf(this.addNewPackage.trackingNumber) !== -1;
         },
         actionModalText: function () {
-            return (this.packageState.action === "move") ? ((this.packageState.tab === "active") ? "Архивирај" : "Активирај") : "Избриши";
+            return (this.packageState.action === "move") ?
+                ((this.packageState.tab === "active") ?
+                    "Архивирај" : "Активирај") : "Избриши";
         },
         disableEditing: function () {
             // disable edit button if the package description is same as the old package description
@@ -364,63 +370,39 @@ new Vue({
             // add spinner
             MaterializeComponents.addModal.addSpinner.style.display = "block";
 
-            /*
-            * TODO: ADD IN STORAGE
-            */
-
+            // add the new tracking number in the storage and in the UI
             var thisApp = this;
+            Common.addNewPackage(
+                this.addNewPackage.trackingNumber,
+                this.addNewPackage.packageDescription,
+                function (response) {
+                    // add the formated data in the UI
+                    var formatedResponse = Common.formatPackageData(response);
+                    thisApp.activePackages.push(formatedResponse);
 
-            var callback = function (response) {
-                console.log(response);
+                    // push this tracking number in the list with all tracking numbers
+                    thisApp.allTrackingNumbers.push(thisApp.addNewPackage.trackingNumber);
 
-                if (response === "error") {
-                    // error
-                }
+                    // open the last added package and scroll to the bottom
+                    var latestPackage = thisApp.activePackages.length - 1;
+                    MaterializeComponents.addModal.addModalInstance.options.onCloseEnd = function () {
+                        MaterializeComponents.activeInstance.options.onOpenEnd = function () {
+                            // scroll to the bottom (user should see the newest results)
+                            MaterializeComponents.scrollableContent.scrollTop =
+                                MaterializeComponents.scrollableContent.scrollHeight;
 
-                // add the new package
-                thisApp.activePackages.push({
-                    trackingNumber: thisApp.addNewPackage.trackingNumber,
-                    packageDescription: thisApp.addNewPackage.packageDescription,
-                    lastRefresh: Common.formatDate(new Date()),
-                    status: "local_shipping",
-                    notifications: 0,
-                    trackingData: []
-                    /*
-                    // example data
-                    [{
-                        date: "15 Февруари 2019, 22:04:04",
-                        beginning: "MKSPG",
-                        end: "",
-                        notice: "Пристигната во наизменична пошта"
-                    }, {
-                        date: "15 Февруари 2019, 22:04:04",
-                        beginning: "Skopje IO 1003",
-                        end: "1020",
-                        notice: "Во пошта"
-                    }, {
-                        date: "15 Февруари 2019, 22:04:04",
-                        beginning: "Skopje -20 1020",
-                        end: "Dostava",
-                        notice: "Испорачана"
-                    }]
-                    */
+                            // revert onOpenEnd function
+                            MaterializeComponents.activeInstance.options.onOpenEnd = undefined;
+                        };
+                        MaterializeComponents.activeInstance.open(latestPackage);
+
+                        // revert onCloseEnd function
+                        MaterializeComponents.addModal.addModalInstance.options.onCloseEnd = undefined;
+                    };
+
+                    // close modal after getting the results from the api and writting them in storage
+                    MaterializeComponents.addModal.addModalInstance.close();
                 });
-
-                // push this tracking number in the list with all tracking numbers
-                thisApp.allTrackingNumbers.push(thisApp.addNewPackage.trackingNumber);
-
-                // open the last added package
-                var latestPackage = thisApp.activePackages.length - 1;
-                MaterializeComponents.addModal.addModalInstance.options.onCloseEnd = function () {
-                    MaterializeComponents.activeInstance.open(latestPackage);
-                };
-
-                // close modal after getting the results from the api and writting them in storage
-                MaterializeComponents.addModal.addModalInstance.close();
-            };
-
-            callback("error");
-            //   Common.getPackage(this.addNewPackage.trackingNumber, end, end);
         },
 
 

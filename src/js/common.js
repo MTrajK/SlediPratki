@@ -70,11 +70,17 @@ Common = (function () {
         // look only for Begining, End, Date and Notice tags (those are used by app)
         // i'm using beginning (with two n) in the code
         for (var i = 0; i < length; i++) {
+            var beginning = xmlDoc.getElementsByTagName("Begining")[i].childNodes[0];
+            var end = xmlDoc.getElementsByTagName("End")[i].childNodes[0];
+            var date = xmlDoc.getElementsByTagName("Date")[i].childNodes[0];
+            var notice = xmlDoc.getElementsByTagName("Notice")[i].childNodes[0];
+
+            // search for self-closing tag
             result.push({
-                beginning: xmlDoc.getElementsByTagName("Begining")[i].childNodes[0].nodeValue,
-                end: xmlDoc.getElementsByTagName("End")[i].childNodes[0].nodeValue,
-                date: xmlDoc.getElementsByTagName("Date")[i].childNodes[0].nodeValue,
-                notice: xmlDoc.getElementsByTagName("Notice")[i].childNodes[0].nodeValue
+                beginning: (beginning === undefined) ? "" : beginning.nodeValue,
+                end: (end === undefined) ? "" : end.nodeValue,
+                date: (date === undefined) ? "" : date.nodeValue,
+                notice: (notice === undefined) ? "" : notice.nodeValue
             });
         }
 
@@ -169,7 +175,7 @@ Common = (function () {
             url: postUrl + trackingNumber,
             timeout: maxRequestTime
         }).then(function (response) {
-            var convertedResponse = convertXMLToList(response);
+            var convertedResponse = convertXMLToList(response.data);
             success(convertedResponse);
         }).catch(function (error) {
             fail("error");
@@ -298,6 +304,8 @@ Common = (function () {
                         }
 
                         // run the outside callback() method if there is one
+                        // no need to call the callback method outside of this check (like in getAllData method)
+                        // because it's not possible to call refresh for 0 packages and the callback function we're using only in popup.js
                         if (callback && (typeof callback === "function")) {
                             callback();
                         }
@@ -352,7 +360,7 @@ Common = (function () {
         };
 
         // call the api
-        getPackage(treckingNumber, ajaxCallback, ajaxCallback);
+        getPackage(trackingNumber, ajaxCallback, ajaxCallback);
     };
 
     /**
@@ -547,15 +555,17 @@ Common = (function () {
             storageStrings.maxActivePackages,
             storageStrings.maxArchivePackages
         ], function (response) {
-            var allTrackingNumbers = {};
-            var addedTrackingNumbers = 0;
+            // tracking numbers properties
             var activeTrackingNumbers = response[storageStrings.activeTrackingNumbers];
             var archiveTrackingNumbers = response[storageStrings.archiveTrackingNumbers];
-            var totalTrackingNumbers = activeTrackingNumbers.length + archiveTrackingNumbers.length;
+            // merge active and archive tracking numbers
+            var allTrackingNumbers = activeTrackingNumbers.concat(archiveTrackingNumbers);
+            var totalTrackingNumbers = allTrackingNumbers.length;
+            var allPackagesWithData = {};
 
-            // save the results that needed to be returnet to the callback method
+            // save all results that need to be returned to the callback method
             var result = {};
-            result[storageStrings.trackingNumbers] = allTrackingNumbers;
+            result[storageStrings.trackingNumbers] = allPackagesWithData;
             result[storageStrings.activeTrackingNumbers] = activeTrackingNumbers;
             result[storageStrings.archiveTrackingNumbers] = archiveTrackingNumbers;
             result[storageStrings.autoRefresh] = response[storageStrings.autoRefresh];
@@ -564,43 +574,31 @@ Common = (function () {
             result[storageStrings.maxActivePackages] = response[storageStrings.maxActivePackages];
             result[storageStrings.maxArchivePackages] = response[storageStrings.maxArchivePackages];
 
-            // callback function to save all tracking numbers
-            var trackingNumberCallback = function (trackingNumber, trackingNumberResponse) {
-                // get all info from the storage for this tracking number
-                allTrackingNumbers[trackingNumber] = trackingNumberResponse[storageStrings.trackingNumbers + trackingNumber];
-
-                addedTrackingNumbers++;
-                if (addedTrackingNumbers === totalTrackingNumbers) {
-                    // in this case, this is the last tracking number so update the tracking number list
-                    result[storageStrings.trackingNumbers] = allTrackingNumbers;
-
-                    if (callback && (typeof callback === "function")) {
-                        callback(result);
-                    }
+            if (totalTrackingNumbers == 0) {
+                if (callback && (typeof callback === "function")) {
+                    // return results without tracking numbers
+                    callback(result);
                 }
-            };
+            } else {
+                var allTrackingNumbersStorageStrings = [];
 
-            // get the data for all active tracking numbers 
-            for (var i = 0; i < activeTrackingNumbers.length; i++) {
-                storageGet([
-                    storageStrings.trackingNumbers + activeTrackingNumbers[i]
-                ], function (trackingNumberResponse) {
-                    trackingNumberCallback(activeTrackingNumbers[i], trackingNumberResponse);
-                });
-            }
+                for (var i = 0; i < totalTrackingNumbers; i++) {
+                    allTrackingNumbersStorageStrings.push(storageStrings.trackingNumbers + allTrackingNumbers[i]);
+                }
 
-            // get the data for all archive tracking numbers
-            for (var i = 0; i < archiveTrackingNumbers.length; i++) {
-                storageGet([
-                    storageStrings.trackingNumbers + archiveTrackingNumbers[i]
-                ], function (trackingNumberResponse) {
-                    trackingNumberCallback(archiveTrackingNumbers[i], trackingNumberResponse);
-                });
-            } 
+                storageGet(allTrackingNumbersStorageStrings,
+                    function (response) {
+                        // add data for all packages to the result
+                        for (var i = 0; i < totalTrackingNumbers; i++) {
+                            allPackagesWithData[allTrackingNumbers[i]] = response[allTrackingNumbersStorageStrings[i]];
+                        }
 
-            // return the result if there are 0 tracking numbers
-            if (totalTrackingNumbers == 0 && callback && (typeof callback === "function")) {
-                callback(result);
+                        // update the result
+                        result[storageStrings.trackingNumbers] = allPackagesWithData;
+                        if (callback && (typeof callback === "function")) {
+                            callback(result);
+                        }
+                    });
             }
         });
     };
