@@ -1,8 +1,20 @@
 (function () {
 
-    var oneHourMillis = 3600000;    // 60 min * 60 sec * 1000 milliseconds = 3.600.000
+    // create a random Id for this background/browser
+    var backgroundId = Math.random().toString() + Math.random().toString();
 
+    // 60 min * 60 sec * 1000 milliseconds = 3.600.000
+    var oneHourMillis = 3600000;
+
+    // version from manifest
     var version = chrome.runtime.getManifest().version;
+
+    // timeout and interval instances
+    var timeoutInstance = undefined;
+    var intervalInstance = undefined;
+
+    // refresh flag (to solve problems with sync with the rest browser's backgrounds)
+    var freeToRefresh = true;
 
     var defaultValues = {};
     defaultValues[Common.storageStrings.version] = version;
@@ -20,8 +32,6 @@
     * 6. Refresh the data.
     */
     var refreshData = function (storageResults) {
-        // log the refreshing time for debug
-        console.log("SlediPratki - Background refresh: " + (new Date()).toLocaleString());
 
         // break if the auto refresh is disabled
         if (!storageResults[Common.storageStrings.autoRefresh])
@@ -32,13 +42,28 @@
         var refreshInterval = storageResults[Common.storageStrings.refreshInterval] * oneHourMillis;
 
         // minus one second just in case (to handle small variations)
-        if (refreshInterval - 1000 <= diffRefresh) {
+        // and chack the refresh flag
+        if (refreshInterval - 1000 <= diffRefresh && freeToRefresh) {
+            // send message to background browsers to notify about the start of refreshing
+            chrome.runtime.sendMessage({
+                type: 'background_refresh_start',
+                excludeId: backgroundId
+            });
+
             // run refreshActiveTrackingNumbers to refresh data
             Common.storageGet([
                 Common.storageStrings.activeTrackingNumbers,
                 Common.storageStrings.enableNotifications,
                 Common.storageStrings.totalNotifications
-            ], Common.refreshActiveTrackingNumbers);
+            ], function (response) {
+                Common.refreshActiveTrackingNumbers(response, function () {
+                    // send message to popups to notify about the end of refreshing
+                    chrome.runtime.sendMessage({
+                        type: 'background_refresh_end',
+                        excludeId: backgroundId
+                    });
+                });
+            });
         }
     };
 
@@ -58,7 +83,7 @@
     */
     var setBackgroundInterval = function () {
         getStorageAndRefreshData();
-        setInterval(getStorageAndRefreshData, oneHourMillis);
+        intervalInstance = setInterval(getStorageAndRefreshData, oneHourMillis);
     };
 
     /**
@@ -77,7 +102,7 @@
             setBackgroundInterval();
         } else {
             // if the last refresh is new, set timeout for the rest miliseconds
-            setTimeout(setBackgroundInterval, diffRefresh - refreshInterval);
+            timeoutInstance = setTimeout(setBackgroundInterval, diffRefresh - refreshInterval);
         }
     };
 
@@ -110,4 +135,23 @@
     */
     Common.storageGet([Common.storageStrings.version], checkVersion);
 
+    /**
+    * listen for message from another browser  
+    */ 
+    chrome.runtime.onMessage.addListener((request) => {
+        // adjust interval/timeout if the background data is refreshed in another browser
+        if (request.type === 'background_refresh_start' && request.excludeId !== backgroundId) {
+            // clear the timeouts and intervals for all other browsers before the ajax calls
+            // and update the refresh flag
+            freeToRefresh = false;
+            clearTimeout(timeoutInstance);
+            clearInterval(intervalInstance);
+        } 
+        else if (request.type === 'background_refresh_end' && request.excludeId !== backgroundId) {
+            // set a new background interval in all browsers after the ajax calls
+            // and update the refresh flag
+            freeToRefresh = true;
+            setBackgroundInterval();
+        }
+    });
 })();

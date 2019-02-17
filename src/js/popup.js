@@ -1,5 +1,5 @@
-(function() {
-    
+(function () {
+
     // create a random Id for this popup
     var popupId = Math.random().toString() + Math.random().toString();
 
@@ -9,10 +9,17 @@
         excludeId: popupId
     });
 
-    // listen for message from another browser, and close the popup if needed
+    // listen for message from another browser popup or background
     chrome.runtime.onMessage.addListener((request) => {
+        // close this popup if some other popup is opened
         if (request.type === 'close_all_popups' && request.excludeId !== popupId) {
             window.close();
+        }
+        // refresh popup data if the background data is refreshed in another browser
+        else if (request.type === 'background_refresh_end') {
+            if (vueApp.$data.isVueAppReady) {
+                vueApp.getAllDataFromBackground();
+            }
         }
     });
 
@@ -46,9 +53,10 @@ var MaterializeComponents = {
     mainSpinner: undefined
 };
 
-new Vue({
+var vueApp = new Vue({
     el: '#app',
     data: {
+        isVueAppReady: false,
         addNewPackage: {
             trackingNumber: "",
             packageDescription: ""
@@ -130,44 +138,11 @@ new Vue({
             // main spinner
             MaterializeComponents.mainSpinner = this.$el.querySelector("#main_spinner");
 
-            // get all data from the storage
-            var thisApp = this;
-            Common.getAllData(function (response) {
-                // get all settings properties
-                thisApp.settings.autoRefresh = response[Common.storageStrings.autoRefresh];
-                thisApp.settings.refreshInterval = response[Common.storageStrings.refreshInterval];
-                thisApp.settings.enableNotifications = response[Common.storageStrings.enableNotifications];
-                thisApp.settings.maxActivePackages = response[Common.storageStrings.maxActivePackages];
-                thisApp.settings.maxArchivePackages = response[Common.storageStrings.maxArchivePackages];
+            // vue app and componets are ready
+            this.isVueAppReady = true;
 
-                // all packages with data
-                var allPackagesWithData = response[Common.storageStrings.trackingNumbers];
-
-                // get all active packages
-                var activeTrackingNumbers = response[Common.storageStrings.activeTrackingNumbers];
-                for (var i = 0; i < activeTrackingNumbers.length; i++) {
-                    var formatedPackageData = Common.formatPackageData(allPackagesWithData[activeTrackingNumbers[i]]);
-                    thisApp.activePackages.push(formatedPackageData);
-                    thisApp.allTrackingNumbers.push(activeTrackingNumbers[i]);
-                }
-
-                // get all archived packages
-                var archiveTrackingNumbers = response[Common.storageStrings.archiveTrackingNumbers];
-                for (var i = 0; i < archiveTrackingNumbers.length; i++) {
-                    var formatedPackageData = Common.formatPackageData(allPackagesWithData[archiveTrackingNumbers[i]]);
-                    thisApp.archivePackages.push(formatedPackageData);
-                    thisApp.allTrackingNumbers.push(archiveTrackingNumbers[i]);
-                }
-
-                // update the refresh interval select manually
-                thisApp.updateRefreshIntervalSelect();
-
-                // remove the main spiner after loading the whole info and init all components
-                // show it just little, to be noticed (looks good)
-                setTimeout(function () {
-                    MaterializeComponents.mainSpinner.style.display = "none";
-                }, 1000);
-            });
+            // get all data from background
+            this.getAllDataFromBackground();
         })
     },
     watch: {
@@ -229,6 +204,50 @@ new Vue({
         **   COMMON METHODS  **
         ***********************/
 
+        getAllDataFromBackground: function () {
+            // add main spinner
+            MaterializeComponents.mainSpinner.style.display = "block";
+
+            // get all data from the storage
+            var thisApp = this;
+
+            Common.getAllData(function (response) {
+                // get all settings properties
+                thisApp.settings.autoRefresh = response[Common.storageStrings.autoRefresh];
+                thisApp.settings.refreshInterval = response[Common.storageStrings.refreshInterval];
+                thisApp.settings.enableNotifications = response[Common.storageStrings.enableNotifications];
+                thisApp.settings.maxActivePackages = response[Common.storageStrings.maxActivePackages];
+                thisApp.settings.maxArchivePackages = response[Common.storageStrings.maxArchivePackages];
+
+                // all packages with data
+                var allPackagesWithData = response[Common.storageStrings.trackingNumbers];
+
+                // get all active packages
+                var activeTrackingNumbers = response[Common.storageStrings.activeTrackingNumbers];
+                for (var i = 0; i < activeTrackingNumbers.length; i++) {
+                    var formatedPackageData = Common.formatPackageData(allPackagesWithData[activeTrackingNumbers[i]]);
+                    thisApp.activePackages.push(formatedPackageData);
+                    thisApp.allTrackingNumbers.push(activeTrackingNumbers[i]);
+                }
+
+                // get all archived packages
+                var archiveTrackingNumbers = response[Common.storageStrings.archiveTrackingNumbers];
+                for (var i = 0; i < archiveTrackingNumbers.length; i++) {
+                    var formatedPackageData = Common.formatPackageData(allPackagesWithData[archiveTrackingNumbers[i]]);
+                    thisApp.archivePackages.push(formatedPackageData);
+                    thisApp.allTrackingNumbers.push(archiveTrackingNumbers[i]);
+                }
+
+                // update the refresh interval select manually
+                thisApp.updateRefreshIntervalSelect();
+
+                // remove the main spiner after loading the whole info and init all components
+                // show it just little, to be noticed (looks good)
+                setTimeout(function () {
+                    MaterializeComponents.mainSpinner.style.display = "none";
+                }, 1000);
+            });
+        },
         updateRefreshIntervalSelect: function () {
             // update this select manually (materialize doesn't handle vue property change)
             var nOptions = MaterializeComponents.refreshIntervalInstance.$selectOptions.length;
