@@ -212,6 +212,7 @@ new Vue({
         updateRefreshIntervalSelect: function () {
             // update this select manually (materialize doesn't handle vue property change)
             var nOptions = MaterializeComponents.refreshIntervalInstance.$selectOptions.length;
+
             for (var i = 0; i < nOptions; i++) {
                 if (MaterializeComponents.refreshIntervalInstance.$selectOptions[i].value == this.settings.refreshInterval) {
                     MaterializeComponents.refreshIntervalInstance.$selectOptions[i].selected = true;
@@ -219,6 +220,7 @@ new Vue({
                     MaterializeComponents.refreshIntervalInstance.$selectOptions[i].selected = false;
                 }
             }
+
             MaterializeComponents.refreshIntervalInstance._setValueToInput();
         },
         updateFromState: function () {
@@ -233,6 +235,7 @@ new Vue({
         },
         removeNotifications: function (index) {
             var thisApp = this;
+
             if (thisApp.activePackages[index].notifications > 0) {
                 Common.removeNotifications(thisApp.activePackages[index].trackingNumber, function () {
                     thisApp.activePackages[index].notifications = 0;
@@ -372,9 +375,10 @@ new Vue({
 
             // add the new tracking number in the storage and in the UI
             var thisApp = this;
+
             Common.addNewPackage(
-                this.addNewPackage.trackingNumber,
-                this.addNewPackage.packageDescription,
+                thisApp.addNewPackage.trackingNumber,
+                thisApp.addNewPackage.packageDescription,
                 function (response) {
                     // add the formated data in the UI
                     var formatedResponse = Common.formatPackageData(response);
@@ -422,6 +426,9 @@ new Vue({
             // add refresh spinner
             MaterializeComponents.refreshModal.refreshSpinner.style.display = "block";
 
+            // scroll to the top of the view
+            MaterializeComponents.scrollableContent.scrollTop = 0;
+
             // close the active collapsibles
             for (var i = 0; i < this.activePackages.length; i++) {
                 MaterializeComponents.activeInstance.close(i);
@@ -444,18 +451,22 @@ new Vue({
 
 
         editPackageFromState: function () {
-            /*
-            * TODO: EDIT IN STORAGE
-            */
+            var thisApp = this;
 
-            if (this.packageState.tab === "active") {
-                this.editActivePackage();
-            } else {
-                this.editArchivePackage();
-            }
+            Common.changePackageDescription(
+                thisApp.packageState.trackingNumber,
+                thisApp.packageState.packageDescription,
+                function () {
+                    if (thisApp.packageState.tab === "active") {
+                        thisApp.editActivePackage();
+                    } else {
+                        thisApp.editArchivePackage();
+                    }
 
-            // close modal
-            MaterializeComponents.editModal.editModalInstance.close();
+                    // close modal
+                    MaterializeComponents.editModal.editModalInstance.close();
+                }
+            );
         },
         editActivePackage: function () {
             this.activePackages[this.packageState.index].packageDescription = this.packageState.packageDescription;
