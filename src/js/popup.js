@@ -474,9 +474,9 @@ var vueApp = new Vue({
         },
 
 
-        /**********************
-        **  REFRESH PACKAGE  **
-        ***********************/
+        /******************************
+        **  REFRESH ACTIVE PACKAGES  **
+        ******************************/
 
 
         openRefreshModal: function () {
@@ -499,7 +499,7 @@ var vueApp = new Vue({
             }
 
             /*
-            * TODO: REFRESH IN STORAGE
+            * TODO: Call refreshActiveTrackingNumbers and convert result like in getAllDataFromBackground
             */
 
             // close modal after 3 seconds

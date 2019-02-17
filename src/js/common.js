@@ -176,9 +176,9 @@ Common = (function () {
             timeout: maxRequestTime
         }).then(function (response) {
             var convertedResponse = convertXMLToList(response.data);
-            success(convertedResponse);
+            success(convertedResponse, trackingNumber);
         }).catch(function (error) {
-            fail("error");
+            fail("error", trackingNumber);
         });
     };
 
@@ -234,6 +234,79 @@ Common = (function () {
     /**
     * Refresh the data for all active tracking numbers.
     */
+    var refreshActiveTrackingNumbers = function (callback) {
+        storageGet([
+            storageStrings.activeTrackingNumbers,
+            storageStrings.enableNotifications,
+            storageStrings.totalNotifications
+        ], function (response) {
+            // data from storage
+            var activeTrackingNumbers = response[storageStrings.activeTrackingNumbers];
+            var enableNotifications = response[storageStrings.enableNotifications];
+            var totalNotifications = response[storageStrings.totalNotifications];
+            var totalActiveTrackingNumbers = activeTrackingNumbers.length;
+
+            // nothing to refresh if there are 0 active tracking numbers
+            if (totalActiveTrackingNumbers === 0) {
+                if (callback && (typeof callback === "function")) {
+                    // return without result, nothing to change
+                    callback();
+                }
+            } else {
+                var activeTrackingNumbersStorageStrings = [];
+
+                for (var i = 0; i < totalActiveTrackingNumbers; i++) {
+                    activeTrackingNumbersStorageStrings.push(storageStrings.trackingNumbers + activeTrackingNumbers[i]);
+                }
+
+                // get old results for all active tracking numbers
+                storageGet(activeTrackingNumbersStorageStrings, function (oldResults) {
+                    var visitedActiveTrackingNumbers = 0;
+                    var activeTrackingNumbersNewResults = {};
+
+                    var ajaxCallback = function (newResult, trackingNumber) {
+                        // collect all new results
+                        activeTrackingNumbersNewResults[trackingNumber] = newResult
+                        visitedActiveTrackingNumbers++;
+
+                        // if all active tracking numbers are visited, then compare old vs new results
+                        if (visitedActiveTrackingNumbers === totalActiveTrackingNumbers) {
+                            var result = {};
+
+                            // TODO: compare results and save them
+                            for (var i = 0; i < totalActiveTrackingNumbers; i++) {
+
+                            }
+
+                            // TODO: update badge
+
+                            // TODO: show notifications in the bottom right corner
+
+                            // save the new results for the active tracking numbers back in storage
+                            // save the number of total notifications
+                            // save the last refresh
+                            storageSet(result, function () {
+                                if (callback && (typeof callback === "function")) {
+                                    // return result
+                                    callback(result);
+                                }
+                            });
+                        }
+                    };
+
+                    // call the api for all active tracking numbers
+                    for (var i = 0; i < totalActiveTrackingNumbers; i++) {
+                        getPackage(activeTrackingNumbers[i], ajaxCallback, ajaxCallback);
+                    }
+                });
+            }
+        });
+    };
+
+    /**
+    * TODO: Delete this function after completing the upper one
+    * Refresh the data for all active tracking numbers.
+    */
     var refreshActiveTrackingNumbers = function (storage, callback) {
         var activeTrackingNumbers = storage[storageStrings.activeTrackingNumbers];
         var enableNotifications = storage[storageStrings.enableNotifications];
@@ -246,7 +319,7 @@ Common = (function () {
         for (var i = 0; i < activeTrackingNumbersLength; i++) {
             var thisTrackingNumber = storageStrings.trackingNumbers + allActiveTrackingNumbers[i];
 
-            var ajaxCallback = function (newResult) {
+            var ajaxCallback = function (newResult, trackingNumberRequest) {
                 storageGet([thisTrackingNumber], function (oldResult) {
 
                     var updateOldResult = oldResult[thisTrackingNumber];
@@ -326,9 +399,9 @@ Common = (function () {
         var ajaxCallback = function (apiResponse) {
             storageGet([
                 storageStrings.activeTrackingNumbers
-            ], function (storageResponse) {
+            ], function (response) {
                 // add this tracking number into active tracking numbers list
-                var newActiveTrackingNumbers = storageResponse[storageStrings.activeTrackingNumbers];
+                var newActiveTrackingNumbers = response[storageStrings.activeTrackingNumbers];
                 newActiveTrackingNumbers.push(trackingNumber);
 
                 // change api response if error
@@ -574,7 +647,7 @@ Common = (function () {
             result[storageStrings.maxActivePackages] = response[storageStrings.maxActivePackages];
             result[storageStrings.maxArchivePackages] = response[storageStrings.maxArchivePackages];
 
-            if (totalTrackingNumbers == 0) {
+            if (totalTrackingNumbers === 0) {
                 if (callback && (typeof callback === "function")) {
                     // return results without tracking numbers
                     callback(result);

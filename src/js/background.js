@@ -51,17 +51,12 @@
             });
 
             // run refreshActiveTrackingNumbers to refresh data
-            Common.storageGet([
-                Common.storageStrings.activeTrackingNumbers,
-                Common.storageStrings.enableNotifications,
-                Common.storageStrings.totalNotifications
-            ], function (response) {
-                Common.refreshActiveTrackingNumbers(response, function () {
-                    // send message to popups to notify about the end of refreshing
-                    chrome.runtime.sendMessage({
-                        type: 'background_refresh_end',
-                        excludeId: backgroundId
-                    });
+            // and send callback function to notify the rest browsers 
+            Common.refreshActiveTrackingNumbers(function () {
+                // send message to popups to notify about the end of refreshing
+                chrome.runtime.sendMessage({
+                    type: 'background_refresh_end',
+                    excludeId: backgroundId
                 });
             });
         }
@@ -137,7 +132,7 @@
 
     /**
     * listen for message from another browser  
-    */ 
+    */
     chrome.runtime.onMessage.addListener((request) => {
         // adjust interval/timeout if the background data is refreshed in another browser
         if (request.type === 'background_refresh_start' && request.excludeId !== backgroundId) {
@@ -146,7 +141,7 @@
             freeToRefresh = false;
             clearTimeout(timeoutInstance);
             clearInterval(intervalInstance);
-        } 
+        }
         else if (request.type === 'background_refresh_end' && request.excludeId !== backgroundId) {
             // set a new background interval in all browsers after the ajax calls
             // and update the refresh flag
@@ -154,4 +149,5 @@
             setBackgroundInterval();
         }
     });
+
 })();
