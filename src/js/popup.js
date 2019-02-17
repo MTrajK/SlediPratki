@@ -316,18 +316,29 @@ new Vue({
 
 
         movePackageFromState: function () {
-            /*
-            * TODO: MOVE IN STORAGE
-            */
+            var thisApp = this;
 
-            if (this.packageState.tab === "active") {
-                this.moveActivePackage();
+            if (thisApp.packageState.tab === "active") {
+                Common.moveActiveToArchive(
+                    thisApp.packageState.trackingNumber,
+                    function () {
+                        thisApp.moveActivePackage();
+
+                        // close modal
+                        MaterializeComponents.actionModalInstance.close();
+                    }
+                );
             } else {
-                this.moveArchivePackage();
-            }
+                Common.moveArchiveToActive(
+                    thisApp.packageState.trackingNumber,
+                    function () {
+                        thisApp.moveArchivePackage();
 
-            // close modal
-            MaterializeComponents.actionModalInstance.close();
+                        // close modal
+                        MaterializeComponents.actionModalInstance.close();
+                    }
+                );
+            }
         },
         moveActivePackage: function () {
             var activeIndex = this.packageState.index;
