@@ -1,3 +1,23 @@
+(function() {
+    
+    // create a random Id for this popup
+    var popupId = Math.random().toString() + Math.random().toString();
+
+    // send message to all other browsers to close the popups
+    chrome.runtime.sendMessage({
+        type: 'close_all_popups',
+        excludeId: popupId
+    });
+
+    // listen for message from another browser, and close the popup if needed
+    chrome.runtime.onMessage.addListener((request) => {
+        if (request.type === 'close_all_popups' && request.excludeId !== popupId) {
+            window.close();
+        }
+    });
+
+})();
+
 var MaterializeComponents = {
     tabsInstance: undefined,
     activeInstance: undefined,
