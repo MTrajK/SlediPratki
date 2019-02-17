@@ -229,9 +229,6 @@ new Vue({
             } else {
                 this.deletePackageFromState();
             }
-
-            // close modal
-            MaterializeComponents.actionModalInstance.close();
         },
         removeNotifications: function (index) {
             var thisApp = this;
@@ -250,18 +247,32 @@ new Vue({
 
 
         deletePackageFromState: function () {
-            /*
-            * TODO: DELETE FROM STORAGE
-           */
+            var thisApp = this;
 
-            if (this.packageState.tab === "active") {
-                this.deleteActivePackage();
+            if (thisApp.packageState.tab === "active") {
+                Common.deleteActivePackage(
+                    thisApp.packageState.trackingNumber,
+                    function () {
+                        thisApp.deleteActivePackage();
+                        thisApp.afterDeleting();
+                    }
+                );
             } else {
-                this.deleteArchivePackage();
+                Common.deleteArchivePackage(
+                    thisApp.packageState.trackingNumber,
+                    function () {
+                        thisApp.deleteArchivePackage();
+                        thisApp.afterDeleting();
+                    }
+                );
             }
-
+        },
+        afterDeleting: function () {
             var allTrackingNumbersIndex = this.allTrackingNumbers.indexOf(this.packageState.trackingNumber);
             this.allTrackingNumbers.splice(allTrackingNumbersIndex, 1);
+
+            // close modal
+            MaterializeComponents.actionModalInstance.close();
         },
         deleteActivePackage: function () {
             var activeIndex = this.packageState.index;
@@ -314,6 +325,9 @@ new Vue({
             } else {
                 this.moveArchivePackage();
             }
+
+            // close modal
+            MaterializeComponents.actionModalInstance.close();
         },
         moveActivePackage: function () {
             var activeIndex = this.packageState.index;
