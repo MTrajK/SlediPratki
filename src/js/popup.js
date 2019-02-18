@@ -66,13 +66,17 @@ new Vue({
             maxActivePackages: undefined,
             maxArchivePackages: undefined
         },
+        activeModal: undefined,     // 4 types: "add", "action", "refresh", "edit"
         allTrackingNumbers: [],
         activePackages: [],
         archivePackages: []
     },
     mounted: function () {
+        /**
+        * init materialize components and create data needed for the app
+        */
         this.$nextTick(function () {
-            /* init materialize components */
+            var thisApp = this;
 
             // tabs
             MaterializeComponents.tabsInstance = M.Tabs.init(this.$el.querySelector("#tabs"));
@@ -90,7 +94,12 @@ new Vue({
 
             // add package modal
             MaterializeComponents.addModal.addModalInstance = M.Modal.init(this.$el.querySelector("#addModal"), {
-                dismissible: false
+                onOpenEnd : function () {
+                    thisApp.activeModal = "add";
+                },
+                onCloseStart: function () {
+                    thisApp.activeModal = undefined;
+                }
             });
             MaterializeComponents.addModal.trackingNumberInput = this.$el.querySelector("#tracking_number");
             MaterializeComponents.addModal.trackingNumberLabel = this.$el.querySelector("#tracking_number_label");
@@ -101,12 +110,22 @@ new Vue({
 
             // action package modal
             MaterializeComponents.actionModalInstance = M.Modal.init(this.$el.querySelector("#actionModal"), {
-                dismissible: false
+                onOpenEnd : function () {
+                    thisApp.activeModal = "action";
+                },
+                onCloseStart: function () {
+                    thisApp.activeModal = undefined;
+                }
             });
-
+            
             // refresh packages modal
             MaterializeComponents.refreshModal.refreshModalInstance = M.Modal.init(this.$el.querySelector("#refreshModal"), {
-                dismissible: false
+                onOpenEnd : function () {
+                    thisApp.activeModal = "refresh";
+                },
+                onCloseStart: function () {
+                    thisApp.activeModal = undefined;
+                }
             });
 
             // refresh spinner
@@ -114,7 +133,12 @@ new Vue({
 
             // edit package modal
             MaterializeComponents.editModal.editModalInstance = M.Modal.init(this.$el.querySelector("#editModal"), {
-                dismissible: false
+                onOpenEnd : function () {
+                    thisApp.activeModal = "edit";
+                },
+                onCloseStart: function () {
+                    thisApp.activeModal = undefined;
+                }
             });
             MaterializeComponents.editModal.packageDescriptionInput = this.$el.querySelector("#edit_package_description");
             MaterializeComponents.editModal.packageDescriptionLabel = this.$el.querySelector("#edit_package_description_label");
@@ -128,13 +152,11 @@ new Vue({
             // main spinner
             MaterializeComponents.mainSpinner = this.$el.querySelector("#main_spinner");
 
-            // FOR TESTING PURPOSE, uncomment this
+            // FOR TESTING PURPOSE UNCOMMENT THIS
             // setTimeout(this.getAllDataFromBackground, 2000);
-            
+
             // get all data from background
             this.getAllDataFromBackground();    // comment this in testing mode
-
-            var thisApp = this;
 
             // listen for message from browser's background or this popup
             chrome.runtime.onMessage.addListener((request) => {
@@ -142,6 +164,43 @@ new Vue({
                 if (request.type === 'background_refresh_end' && request.excludeId !== Common.instanceId) {
                     thisApp.getAllDataFromBackground();
                 }
+            });
+
+            // listen for keypress event
+            // handles only enter press in modal dialogs  
+            document.addEventListener("keydown", function (e) {
+                // no modal dialog opened
+                if (thisApp.activeModal === undefined) {
+                    return;
+                }
+
+                // enter is pressed
+                if (e.keyCode == 13) {
+                    var activeModal = thisApp.activeModal;
+                    
+                    // reset this property because onCloseStart is slow
+                    thisApp.activeModal = undefined;
+
+                    switch (activeModal) {
+                        case "add":
+                            if (!thisApp.disabledTrackingNumber()) {
+                                thisApp.addNewActivePackage();
+                            }
+                            break;
+                        case "action":
+                            thisApp.updateFromState();
+                            break;
+                        case "refresh":
+                            thisApp.refreshPackages();
+                            break;
+                        case "edit":
+                            if (!thisApp.disabledPackageDescription()) {
+                                thisApp.editPackageFromState();
+                            }
+                            break;
+                    }
+                }
+
             });
         })
     },
@@ -173,19 +232,15 @@ new Vue({
     },
     computed: {
         disableAdding: function () {
-            // disable add button if the tracking number contains less than 8 chars
-            // or if that tracking number exist in the active or archive collapsible
-            return this.addNewPackage.trackingNumber.length < 8 ||
-                this.allTrackingNumbers.indexOf(this.addNewPackage.trackingNumber) !== -1;
+            return this.disabledTrackingNumber();
+        },
+        disableEditing: function () {
+            return this.disabledPackageDescription();
         },
         actionModalText: function () {
             return (this.packageState.action === "move") ?
                 ((this.packageState.tab === "active") ?
                     "Архивирај" : "Активирај") : "Избриши";
-        },
-        disableEditing: function () {
-            // disable edit button if the package description is same as the old package description
-            return this.packageState.packageDescription === this.packageState.oldPackageDescription;
         },
         disableNewActive: function () {
             return this.settings.maxActivePackages === this.activePackages.length;
@@ -277,6 +332,16 @@ new Vue({
                     thisApp.activePackages[index].notifications = 0;
                 });
             }
+        },
+        disabledTrackingNumber: function () {
+            // disable add button if the tracking number contains less than 8 chars
+            // or if that tracking number exist in the active or archive collapsible
+            return this.addNewPackage.trackingNumber.length < 8 ||
+                this.allTrackingNumbers.indexOf(this.addNewPackage.trackingNumber) !== -1;
+        },
+        disabledPackageDescription: function () {
+            // disable edit button if the package description is same as the old package description
+            return this.packageState.packageDescription === this.packageState.oldPackageDescription;
         },
 
 
