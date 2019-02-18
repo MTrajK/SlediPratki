@@ -172,17 +172,17 @@ Common = (function () {
     /**
     * Get status of tracking data (read the notice from the last result).
     * 3 possible statuses: 
-    * - "clear": no results
+    * - "remove_circle": no results
     * - "local_shipping": package in transit
-    * - "done": package recived
+    * - "where_to_vote": package recived
     */
     var getStatusOfTrackingData = function (trackingData) {
         var length = trackingData.length;
 
         if (length === 0) {
-            return "clear";
+            return "remove_circle";
         } else if (trackingData[length - 1].notice === "Ispora~ana") {
-            return "done";
+            return "where_to_vote";
         } else {
             return "local_shipping";
         }

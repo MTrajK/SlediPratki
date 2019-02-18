@@ -250,6 +250,10 @@ html, body {
     font-weight: bold;
 }
 
+.status-icon {
+    color: #50565d;
+}
+
 
 /* SCROLLBAR */
 ::-webkit-scrollbar {

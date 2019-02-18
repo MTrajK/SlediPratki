@@ -40,7 +40,7 @@
                     <li v-for="(activePackage, index) in activePackages">
                         <div class="collapsible-header waves-effect waves-dark" v-on:click="removeNotifications(index)">
                             <div class="col s1-5-new">
-                                <i class="material-icons">{{activePackage.status}}</i>
+                                <i class="material-icons status-icon">{{activePackage.status}}</i>
                             </div>
                             <div class="col middle-allign" v-bind:class="[ activePackage.notifications ? 's9-new' : 's10-5-new' ]">
                                 <p class="collapsible-header-text">{{activePackage.packageDescription.length ?
@@ -120,7 +120,7 @@
                     <li v-for="(archivePackage, index) in archivePackages">
                         <div class="collapsible-header waves-effect waves-dark">
                             <div class="col s1-5-new">
-                                <i class="material-icons">{{archivePackage.status}}</i>
+                                <i class="material-icons status-icon">{{archivePackage.status}}</i>
                             </div>
                             <div class="col s10-5-new middle-allign">
                                 <p class="collapsible-header-text">{{archivePackage.packageDescription.length ?
