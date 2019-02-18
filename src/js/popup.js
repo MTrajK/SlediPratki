@@ -1,7 +1,7 @@
 (function () {
 
     // create a random Id for this popup
-    var popupId = Math.random().toString() + Math.random().toString();
+    var popupId = Common.generateRandomId();
 
     // send message to all other browsers to close the popups
     chrome.runtime.sendMessage({

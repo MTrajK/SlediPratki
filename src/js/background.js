@@ -1,13 +1,10 @@
 (function () {
 
     // create a random Id for this background/browser
-    var backgroundId = Math.random().toString() + Math.random().toString();
+    var backgroundId = Common.generateRandomId();
 
     // 60 min * 60 sec * 1000 milliseconds = 3.600.000
     var oneHourMillis = 3600000;
-
-    // version from manifest
-    var version = chrome.runtime.getManifest().version;
 
     // timeout and interval instances
     var timeoutInstance = undefined;
@@ -16,49 +13,34 @@
     // refresh flag (to solve problems with sync with the rest browser's backgrounds)
     var freeToRefresh = true;
 
-    var defaultValues = {};
-    defaultValues[Common.storageStrings.version] = version;
-    defaultValues[Common.storageStrings.lastRefresh] = (new Date(0)).toJSON();
-    defaultValues[Common.storageStrings.totalNotifications] = 0;
-    defaultValues[Common.storageStrings.activeTrackingNumbers] = [];
-    defaultValues[Common.storageStrings.archiveTrackingNumbers] = [];
-    defaultValues[Common.storageStrings.autoRefresh] = true;
-    defaultValues[Common.storageStrings.refreshInterval] = 4;
-    defaultValues[Common.storageStrings.enableNotifications] = true;
-    defaultValues[Common.storageStrings.maxActivePackages] = 20;
-    defaultValues[Common.storageStrings.maxArchivePackages] = 15;
-
     /**
     * 6. Refresh the data.
     */
     var refreshData = function (storageResults) {
 
-        // break if the auto refresh is disabled
-        if (!storageResults[Common.storageStrings.autoRefresh])
+        // break if in this moment other background is refreshing proccess
+        if (!freeToRefresh) {
             return;
+        }
+
+        // break if there are 0 active tracking numbers, nothing to refresh
+        if (storageResults[Common.storageStrings.activeTrackingNumbers].length === 0) {
+            return;
+        }
+
+        // break if the auto refresh is disabled
+        if (!storageResults[Common.storageStrings.autoRefresh]) {
+            return;
+        }
 
         // how many milliseconds passed from the last refresh till now
         var diffRefresh = Common.dateDiff(storageResults[Common.storageStrings.lastRefresh], new Date());
         var refreshInterval = storageResults[Common.storageStrings.refreshInterval] * oneHourMillis;
 
         // minus one second just in case (to handle small variations)
-        // and chack the refresh flag
-        if (refreshInterval - 1000 <= diffRefresh && freeToRefresh) {
-            // send message to background browsers to notify about the start of refreshing
-            chrome.runtime.sendMessage({
-                type: 'background_refresh_start',
-                excludeId: backgroundId
-            });
-
-            // run refreshActiveTrackingNumbers to refresh data
-            // and send callback function to notify the rest browsers 
-            Common.refreshActiveTrackingNumbers(function () {
-                // send message to popups to notify about the end of refreshing
-                chrome.runtime.sendMessage({
-                    type: 'background_refresh_end',
-                    excludeId: backgroundId
-                });
-            });
+        if (refreshInterval - 1000 <= diffRefresh) {
+            // refresh data
+            Common.refreshActiveTrackingNumbers(backgroundId);
         }
     };
 
@@ -67,6 +49,7 @@
     */
     var getStorageAndRefreshData = function () {
         Common.storageGet([
+            Common.storageStrings.activeTrackingNumbers,
             Common.storageStrings.autoRefresh,
             Common.storageStrings.refreshInterval,
             Common.storageStrings.lastRefresh
@@ -118,7 +101,7 @@
     var checkVersion = function (response) {
         if (response[Common.storageStrings.version] === undefined) {
             // fill the storage with default values and after that start the background
-            Common.storageSet(defaultValues, getRefreshSettings);
+            Common.setDefaultStorageValues(getRefreshSettings);
         } else {
             // start the background
             getRefreshSettings();

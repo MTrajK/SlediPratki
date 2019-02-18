@@ -1,7 +1,8 @@
 Common = (function () {
 
+    var appVersion = chrome.runtime.getManifest().version;
     var postUrl = "https://www.posta.com.mk/tnt/api/query?id=";
-    var maxRequestTime = 15000;     // 15 seconds max request
+    var maxRequestTime = 15000;     // 15 seconds max request (maybe this is too much)
     var months = ["Јануари", "Февруари", "Март", "Април", "Мај", "Јуни", "Јули", "Август", "Септември", "Октомври", "Ноември", "Декември"];
 
     /**
@@ -20,6 +21,21 @@ Common = (function () {
         maxArchivePackages: "SlediPratki.Settings.MaxArchivePackages",
         trackingNumbers: "SlediPratki.TrackingNumbers."
     };
+
+    /**
+    * Default storage values.
+    */
+    var defaultStorageValues = {};
+    defaultStorageValues[storageStrings.version] = appVersion;
+    defaultStorageValues[storageStrings.lastRefresh] = (new Date(0)).toJSON();
+    defaultStorageValues[storageStrings.totalNotifications] = 0;
+    defaultStorageValues[storageStrings.activeTrackingNumbers] = [];
+    defaultStorageValues[storageStrings.archiveTrackingNumbers] = [];
+    defaultStorageValues[storageStrings.autoRefresh] = true;
+    defaultStorageValues[storageStrings.refreshInterval] = 4;
+    defaultStorageValues[storageStrings.enableNotifications] = true;
+    defaultStorageValues[storageStrings.maxActivePackages] = 20;
+    defaultStorageValues[storageStrings.maxArchivePackages] = 15;
 
     var addZero = function (num) {
         return (num < 10 ? "0" : "") + num;
@@ -167,6 +183,27 @@ Common = (function () {
     };
 
     /**
+    * Passed miliseconds from firstDate to secondDate. (secondDate - firstDate)
+    */
+    var dateDiff = function (firstDate, secondDate) {
+        if (typeof firstDate === "string") {
+            firstDate = new Date(firstDate);
+        }
+        if (typeof secondDate === "string") {
+            secondDate = new Date(secondDate);
+        }
+
+        return secondDate.getTime() - firstDate.getTime();
+    };
+
+    /**
+    * Generate random Id string.
+    */
+    var generateRandomId = function () {
+        return Math.random().toString() + Math.random().toString();
+    };
+
+    /**
     * Get data for some package from the posta.com.mk service.
     */
     var getPackage = function (trackingNumber, success, fail) {
@@ -204,6 +241,13 @@ Common = (function () {
     };
 
     /**
+    * Fill the storage with default values.
+    */
+    var setDefaultStorageValues = function (callback) {
+        storageSet(defaultStorageValues, callback);
+    };
+
+    /**
     * Add or remove badge with notifications on the extension icon.
     */
     var setBadge = function (notifications) {
@@ -218,23 +262,31 @@ Common = (function () {
     };
 
     /**
-    * Passed miliseconds from firstDate to secondDate. (secondDate - firstDate)
+    * Show notifications window in the right bottom corner.
     */
-    var dateDiff = function (firstDate, secondDate) {
-        if (typeof firstDate === "string") {
-            firstDate = new Date(firstDate);
-        }
-        if (typeof secondDate === "string") {
-            secondDate = new Date(secondDate);
-        }
+    var showNotifications = function (notifications) {
+        var suffix = (notifications > 1 ? "и" : "а");
 
-        return secondDate.getTime() - firstDate.getTime();
+        var notificationOptions = {
+            type: "basic",
+            title: "Следи Пратки",
+            message: notifications + " нов" + suffix + " промен" + suffix + " во пратките.",
+            iconUrl: "../img/icon128.png"
+        };
+
+        chrome.notifications.create("SlediPratki.Notification-" + generateRandomId(), notificationOptions);
     };
 
     /**
     * Refresh the data for all active tracking numbers.
     */
-    var refreshActiveTrackingNumbers = function (callback) {
+    var refreshActiveTrackingNumbers = function (callback, instanceId) {
+        // send message to browser's backgrounds to notify them about the start of refreshing
+        chrome.runtime.sendMessage({
+            type: 'background_refresh_start',
+            excludeId: instanceId
+        });
+
         storageGet([
             storageStrings.activeTrackingNumbers,
             storageStrings.enableNotifications,
@@ -247,149 +299,111 @@ Common = (function () {
             var totalActiveTrackingNumbers = activeTrackingNumbers.length;
 
             // nothing to refresh if there are 0 active tracking numbers
+            // this case should not happen
             if (totalActiveTrackingNumbers === 0) {
-                if (callback && (typeof callback === "function")) {
-                    // return without result, nothing to change
-                    callback();
-                }
-            } else {
-                var activeTrackingNumbersStorageStrings = [];
+                return;
+            }
 
-                for (var i = 0; i < totalActiveTrackingNumbers; i++) {
-                    activeTrackingNumbersStorageStrings.push(storageStrings.trackingNumbers + activeTrackingNumbers[i]);
-                }
+            var result = {};
+            // save the last refresh before calling calling the api 
+            // (in this way, this browser/background will have priority in the next refreshing scheduling)
+            result[storageStrings.lastRefresh] = dateNowJSON();
 
-                // get old results for all active tracking numbers
-                storageGet(activeTrackingNumbersStorageStrings, function (oldResults) {
-                    var visitedActiveTrackingNumbers = 0;
-                    var activeTrackingNumbersNewResults = {};
+            var activeTrackingNumbersStorageStrings = [];
 
-                    var ajaxCallback = function (newResult, trackingNumber) {
-                        // collect all new results
-                        activeTrackingNumbersNewResults[trackingNumber] = newResult
-                        visitedActiveTrackingNumbers++;
+            // create storage strings for each active tracking number
+            for (var i = 0; i < totalActiveTrackingNumbers; i++) {
+                activeTrackingNumbersStorageStrings.push(storageStrings.trackingNumbers + activeTrackingNumbers[i]);
+            }
 
-                        // if all active tracking numbers are visited, then compare old vs new results
-                        if (visitedActiveTrackingNumbers === totalActiveTrackingNumbers) {
-                            var result = {};
+            // get old results for all active tracking numbers
+            storageGet(activeTrackingNumbersStorageStrings, function (oldResults) {
+                var visitedActiveTrackingNumbers = 0;
+                var activeTrackingNumbersNewTrackingData = {};
 
-                            // TODO: compare results and save them
-                            for (var i = 0; i < totalActiveTrackingNumbers; i++) {
+                var ajaxCallback = function (newTrackingDataApi, trackingNumber) {
+                    // collect new tracking data (api response)
+                    activeTrackingNumbersNewTrackingData[trackingNumber] = newTrackingDataApi;
+                    visitedActiveTrackingNumbers++;
 
+                    // if all active tracking numbers are visited, then this is the last response from api, compare old vs new trackingData
+                    if (visitedActiveTrackingNumbers === totalActiveTrackingNumbers) {
+
+                        // count the difference in the new results
+                        var newNotifications = 0;
+
+                        // compare the new active tracking numbers with the old ones and save results
+                        for (var j = 0; j < totalActiveTrackingNumbers; j++) {
+                            // get the old result for this tracking number
+                            var updatedResult = oldResults[activeTrackingNumbersStorageStrings[j]];
+
+                            // update last refresh for this tracking number
+                            updatedResult.lastRefresh = dateNowJSON();
+
+                            // get the new result for this tracking number
+                            var newTrackingData = activeTrackingNumbersNewTrackingData[activeTrackingNumbers[j]];
+
+                            // new notifications for this tracking number
+                            var newLocalNotifications = newTrackingData.length - updatedResult.trackingData.length;
+
+                            // if there is a new result and something new in that result
+                            // then update everything except the trackingNumber and packageDescription for this tracking number
+                            // so update only: status, notifications, trackingData (lastRefresh is previously updated)
+                            if (newTrackingData !== "error" && newLocalNotifications > 0) {
+                                // update the status
+                                updatedResult.status = getStatusOfTrackingData(newTrackingData);
+
+                                // update notifications for this tracking number
+                                newNotifications += newLocalNotifications;
+                                updatedResult.notifications += newLocalNotifications;
+
+                                // save the new tracking data
+                                updatedResult.trackingData = newTrackingData;
                             }
 
-                            // TODO: update badge
-
-                            // TODO: show notifications in the bottom right corner
-
-                            // save the new results for the active tracking numbers back in storage
-                            // save the number of total notifications
-                            // save the last refresh
-                            storageSet(result, function () {
-                                if (callback && (typeof callback === "function")) {
-                                    // return result
-                                    callback(result);
-                                }
-                            });
+                            // save the updated result
+                            result[activeTrackingNumbersStorageStrings[j]] = updatedResult;
                         }
-                    };
 
-                    // call the api for all active tracking numbers
-                    for (var i = 0; i < totalActiveTrackingNumbers; i++) {
-                        getPackage(activeTrackingNumbers[i], ajaxCallback, ajaxCallback);
-                    }
-                });
-            }
-        });
-    };
-
-    /**
-    * TODO: Delete this function after completing the upper one
-    * Refresh the data for all active tracking numbers.
-    */
-    var refreshActiveTrackingNumbers = function (storage, callback) {
-        var activeTrackingNumbers = storage[storageStrings.activeTrackingNumbers];
-        var enableNotifications = storage[storageStrings.enableNotifications];
-        var totalNotifications = storage[storageStrings.totalNotifications];
-        var activeTrackingNumbersLength = activeTrackingNumbers.length;
-        var refreshedPackages = 0;
-        var newNotifications = 0;
-
-        // get the old results for all tracking numbers
-        for (var i = 0; i < activeTrackingNumbersLength; i++) {
-            var thisTrackingNumber = storageStrings.trackingNumbers + allActiveTrackingNumbers[i];
-
-            var ajaxCallback = function (newResult, trackingNumberRequest) {
-                storageGet([thisTrackingNumber], function (oldResult) {
-
-                    var updateOldResult = oldResult[thisTrackingNumber];
-                    // update last refresh for this tracking number
-                    updateOldResult.lastRefresh = dateNowJSON();
-
-                    // if there is a new result and something new in that result
-                    if (newResult !== "error" && newResult.length > updateOldResult.trackingData.length) {
-                        // don't update only the trackingNumber and packageDescription for this package! 
-
-                        // update notifications for this tracking number
-                        var newLocalNotifications = newResult.length - updateOldResult.trackingData.length;
-                        newNotifications += newLocalNotifications;
-                        updateOldResult.notifications += newLocalNotifications;
-
-                        // save the new tracking data
-                        updateOldResult.trackingData = newResult;
-
-                        // update the status
-                        updateOldResult.status = getStatusOfTrackingData(newResult);
-                    }
-
-                    // update this tracking number
-                    var updateThisTrackingNumber = {};
-                    updateThisTrackingNumber[thisTrackingNumber] = updateOldResult;
-                    storageSet(updateThisTrackingNumber);
-
-                    refreshedPackages++;
-
-                    if (totalPackages === refreshedPackages) {
-                        // in this case all packages are refreshed/synced
-
-                        var updateStorage = {};
-                        // update global last refresh
-                        updateStorage[storageStrings.lastRefresh] = dateNowJSON();
-
-                        // update total notifications
                         var allNotifications = totalNotifications + newNotifications;
-                        updateStorage[storageStrings.totalNotifications] = allNotifications;
-                        storageSet(updateStorage);
+
+                        // save the number of total notifications
+                        result[storageStrings.totalNotifications] = allNotifications;
 
                         // update the badge
                         setBadge(allNotifications);
 
-                        // show notification window in the right bottom corner if there are new notifications
+                        // show notifications window in the right bottom corner
+                        // show only if there are new notifications and notifications are enabled
                         if (enableNotifications && newNotifications > 0) {
-                            var suffix = (newNotifications > 1 ? "и" : "а");
-                            var options = {
-                                type: "basic",
-                                title: "Следи Пратки",
-                                message: newNotifications + " нов" + suffix + " промен" + suffix + " во пратките.",
-                                iconUrl: "../img/icon128.png"
-                            };
-                            chrome.notifications.create("SlediPratki" + (new Date()).getTime(), options);
+                            showNotifications(newNotifications);
                         }
 
-                        // run the outside callback() method if there is one
-                        // no need to call the callback method outside of this check (like in getAllData method)
-                        // because it's not possible to call refresh for 0 packages and the callback function we're using only in popup.js
-                        if (callback && (typeof callback === "function")) {
-                            callback();
-                        }
+                        // save the new results in storage
+                        storageSet(result, function () {
+
+                            // send message to browser's backgrounds and popups to notify them about the end of refreshing
+                            chrome.runtime.sendMessage({
+                                type: 'background_refresh_end',
+                                excludeId: instanceId
+                            });
+
+                            // return the new results if there is a callback method
+                            if (callback && (typeof callback === "function")) {
+                                callback(result);
+                            }
+
+                        });
                     }
+                };
 
-                });
-            };
+                // call the api for all active tracking numbers
+                for (var i = 0; i < totalActiveTrackingNumbers; i++) {
+                    getPackage(activeTrackingNumbers[i], ajaxCallback, ajaxCallback);
+                }
+            });
 
-            // call the api
-            getPackage(thisTrackingNumber, ajaxCallback, ajaxCallback);
-        }
+        });
     };
 
     /**
@@ -668,6 +682,8 @@ Common = (function () {
 
                         // update the result
                         result[storageStrings.trackingNumbers] = allPackagesWithData;
+
+                        // send the result to the callback function
                         if (callback && (typeof callback === "function")) {
                             callback(result);
                         }
@@ -682,12 +698,15 @@ Common = (function () {
         formatNoticeText: formatNoticeText,
         formatPackageData: formatPackageData,
         getStatusOfTrackingData: getStatusOfTrackingData,
+        dateDiff: dateDiff,
+        generateRandomId: generateRandomId,
         getPackage: getPackage,
         storageGet: storageGet,
         storageSet: storageSet,
         storageRemove: storageRemove,
+        setDefaultStorageValues: setDefaultStorageValues,
         setBadge: setBadge,
-        dateDiff: dateDiff,
+        showNotifications: showNotifications,
         refreshActiveTrackingNumbers: refreshActiveTrackingNumbers,
         addNewPackage: addNewPackage,
         deleteActivePackage: deleteActivePackage,
