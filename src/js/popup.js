@@ -128,8 +128,11 @@ new Vue({
             // main spinner
             MaterializeComponents.mainSpinner = this.$el.querySelector("#main_spinner");
 
+            // FOR TESTING PURPOSE, uncomment this
+            // setTimeout(this.getAllDataFromBackground, 2000);
+            
             // get all data from background
-            this.getAllDataFromBackground();
+            this.getAllDataFromBackground();    // comment this in testing mode
 
             var thisApp = this;
 

@@ -620,13 +620,16 @@ Common = (function () {
             storageStrings.totalNotifications,
             thisTrackingNumber
         ], function (response) {
-            // update the notifications for this package
             var package = response[thisTrackingNumber];
+            
+            // update total notifications
             var totalNotifications = response[storageStrings.totalNotifications] - package.notifications;
-            package.notifications = 0;
 
             // update the badge
             setBadge(totalNotifications);
+
+            // remove all notifications for this package
+            package.notifications = 0;
 
             // save the package with 0 notifications and update total notifications
             var updateStorage = {};
