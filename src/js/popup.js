@@ -3,7 +3,7 @@
     // send message to all other browsers to close the popups
     chrome.runtime.sendMessage({
         type: 'close_all_popups',
-        excludeId: popupId
+        excludeId: Common.instanceId
     });
 
     // listen for message from another browser's popup
@@ -508,7 +508,7 @@ new Vue({
 
                 // format the results and update the UI
                 for (var p = 0; p < activeTrackingNumbers.length; p++) {
-                    var packageData = response[Common.storageStrings.trackingNumber + activeTrackingNumbers[p]];
+                    var packageData = response[Common.storageStrings.trackingNumbers + activeTrackingNumbers[p]];
                     var formatedPackageData = Common.formatPackageData(packageData);
                     thisApp.activePackages.push(formatedPackageData);
                 }
