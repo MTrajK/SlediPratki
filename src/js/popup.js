@@ -1,25 +1,16 @@
 (function () {
 
-    // create a random Id for this popup
-    var popupId = Common.generateRandomId();
-
     // send message to all other browsers to close the popups
     chrome.runtime.sendMessage({
         type: 'close_all_popups',
         excludeId: popupId
     });
 
-    // listen for message from another browser popup or background
+    // listen for message from another browser's popup
     chrome.runtime.onMessage.addListener((request) => {
         // close this popup if some other popup is opened
-        if (request.type === 'close_all_popups' && request.excludeId !== popupId) {
+        if (request.type === 'close_all_popups' && request.excludeId !== Common.instanceId) {
             window.close();
-        }
-        // refresh popup data if the background data is refreshed in another browser
-        else if (request.type === 'background_refresh_end') {
-            if (vueApp.$data.isVueAppReady) {
-                vueApp.getAllDataFromBackground();
-            }
         }
     });
 
@@ -53,10 +44,9 @@ var MaterializeComponents = {
     mainSpinner: undefined
 };
 
-var vueApp = new Vue({
+new Vue({
     el: '#app',
     data: {
-        isVueAppReady: false,
         addNewPackage: {
             trackingNumber: "",
             packageDescription: ""
@@ -138,11 +128,18 @@ var vueApp = new Vue({
             // main spinner
             MaterializeComponents.mainSpinner = this.$el.querySelector("#main_spinner");
 
-            // vue app and componets are ready
-            this.isVueAppReady = true;
-
             // get all data from background
             this.getAllDataFromBackground();
+
+            var thisApp = this;
+
+            // listen for message from browser's background or this popup
+            chrome.runtime.onMessage.addListener((request) => {
+                // refresh popup data if the background data is refreshed in another browser
+                if (request.type === 'background_refresh_end' && request.excludeId !== Common.instanceId) {
+                    thisApp.getAllDataFromBackground();
+                }
+            });
         })
     },
     watch: {
@@ -208,9 +205,9 @@ var vueApp = new Vue({
             // add main spinner
             MaterializeComponents.mainSpinner.style.display = "block";
 
-            // get all data from the storage
             var thisApp = this;
 
+            // get all data from the storage
             Common.getAllData(function (response) {
                 // get all settings properties
                 thisApp.settings.autoRefresh = response[Common.storageStrings.autoRefresh];
@@ -224,18 +221,18 @@ var vueApp = new Vue({
 
                 // get all active packages
                 var activeTrackingNumbers = response[Common.storageStrings.activeTrackingNumbers];
-                for (var i = 0; i < activeTrackingNumbers.length; i++) {
-                    var formatedPackageData = Common.formatPackageData(allPackagesWithData[activeTrackingNumbers[i]]);
+                for (var a = 0; a < activeTrackingNumbers.length; a++) {
+                    var formatedPackageData = Common.formatPackageData(allPackagesWithData[activeTrackingNumbers[a]]);
                     thisApp.activePackages.push(formatedPackageData);
-                    thisApp.allTrackingNumbers.push(activeTrackingNumbers[i]);
+                    thisApp.allTrackingNumbers.push(activeTrackingNumbers[a]);
                 }
 
                 // get all archived packages
                 var archiveTrackingNumbers = response[Common.storageStrings.archiveTrackingNumbers];
-                for (var i = 0; i < archiveTrackingNumbers.length; i++) {
-                    var formatedPackageData = Common.formatPackageData(allPackagesWithData[archiveTrackingNumbers[i]]);
+                for (var a = 0; a < archiveTrackingNumbers.length; a++) {
+                    var formatedPackageData = Common.formatPackageData(allPackagesWithData[archiveTrackingNumbers[a]]);
                     thisApp.archivePackages.push(formatedPackageData);
-                    thisApp.allTrackingNumbers.push(archiveTrackingNumbers[i]);
+                    thisApp.allTrackingNumbers.push(archiveTrackingNumbers[a]);
                 }
 
                 // update the refresh interval select manually
@@ -252,11 +249,11 @@ var vueApp = new Vue({
             // update this select manually (materialize doesn't handle vue property change)
             var nOptions = MaterializeComponents.refreshIntervalInstance.$selectOptions.length;
 
-            for (var i = 0; i < nOptions; i++) {
-                if (MaterializeComponents.refreshIntervalInstance.$selectOptions[i].value == this.settings.refreshInterval) {
-                    MaterializeComponents.refreshIntervalInstance.$selectOptions[i].selected = true;
+            for (var o = 0; o < nOptions; o++) {
+                if (MaterializeComponents.refreshIntervalInstance.$selectOptions[o].value == this.settings.refreshInterval) {
+                    MaterializeComponents.refreshIntervalInstance.$selectOptions[o].selected = true;
                 } else {
-                    MaterializeComponents.refreshIntervalInstance.$selectOptions[i].selected = false;
+                    MaterializeComponents.refreshIntervalInstance.$selectOptions[o].selected = false;
                 }
             }
 
@@ -437,9 +434,9 @@ var vueApp = new Vue({
             // add spinner
             MaterializeComponents.addModal.addSpinner.style.display = "block";
 
-            // add the new tracking number in the storage and in the UI
             var thisApp = this;
 
+            // add the new tracking number in the storage and in the UI
             Common.addNewPackage(
                 thisApp.addNewPackage.trackingNumber,
                 thisApp.addNewPackage.packageDescription,
@@ -498,14 +495,27 @@ var vueApp = new Vue({
                 MaterializeComponents.activeInstance.close(i);
             }
 
-            /*
-            * TODO: Call refreshActiveTrackingNumbers and convert result like in getAllDataFromBackground
-            */
+            var thisApp = this;
 
-            // close modal after 3 seconds
-            setTimeout(function () {
+            // refresh active tracking numbers
+            Common.refreshActiveTrackingNumbers(Common.instanceId, function (response) {
+
+                // get all active tracking numbers
+                var activeTrackingNumbers = response[Common.storageStrings.activeTrackingNumbers];
+
+                // clear the old list with active packages
+                thisApp.activePackages = [];
+
+                // format the results and update the UI
+                for (var p = 0; p < activeTrackingNumbers.length; p++) {
+                    var packageData = response[Common.storageStrings.trackingNumber + activeTrackingNumbers[p]];
+                    var formatedPackageData = Common.formatPackageData(packageData);
+                    thisApp.activePackages.push(formatedPackageData);
+                }
+
+                // close the refresh modal in the end
                 MaterializeComponents.refreshModal.refreshModalInstance.close();
-            }, 3000);
+            });
         },
 
 

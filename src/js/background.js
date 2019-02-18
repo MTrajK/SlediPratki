@@ -1,8 +1,5 @@
 (function () {
 
-    // create a random Id for this background/browser
-    var backgroundId = Common.generateRandomId();
-
     // 60 min * 60 sec * 1000 milliseconds = 3.600.000
     var oneHourMillis = 3600000;
 
@@ -10,7 +7,7 @@
     var timeoutInstance = undefined;
     var intervalInstance = undefined;
 
-    // refresh flag (to solve problems with sync with the rest browser's backgrounds)
+    // refresh flag (to solve problems with sync with the rest browser's backgrounds, some kind of concurrency problem)
     var freeToRefresh = true;
 
     /**
@@ -40,7 +37,7 @@
         // minus one second just in case (to handle small variations)
         if (refreshInterval - 1000 <= diffRefresh) {
             // refresh data
-            Common.refreshActiveTrackingNumbers(backgroundId);
+            Common.refreshActiveTrackingNumbers(Common.instanceId, undefined);
         }
     };
 
@@ -114,18 +111,18 @@
     Common.storageGet([Common.storageStrings.version], checkVersion);
 
     /**
-    * listen for message from another browser  
+    * listen for message from another browser or popup
     */
     chrome.runtime.onMessage.addListener((request) => {
         // adjust interval/timeout if the background data is refreshed in another browser
-        if (request.type === 'background_refresh_start' && request.excludeId !== backgroundId) {
+        if (request.type === 'background_refresh_start' && request.excludeId !== Common.instanceId) {
             // clear the timeouts and intervals for all other browsers before the ajax calls
             // and update the refresh flag
             freeToRefresh = false;
             clearTimeout(timeoutInstance);
             clearInterval(intervalInstance);
         }
-        else if (request.type === 'background_refresh_end' && request.excludeId !== backgroundId) {
+        else if (request.type === 'background_refresh_end' && request.excludeId !== Common.instanceId) {
             // set a new background interval in all browsers after the ajax calls
             // and update the refresh flag
             freeToRefresh = true;

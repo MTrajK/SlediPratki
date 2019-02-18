@@ -37,6 +37,9 @@ Common = (function () {
     defaultStorageValues[storageStrings.maxActivePackages] = 20;
     defaultStorageValues[storageStrings.maxArchivePackages] = 15;
 
+    /**
+    * Helper method to add zero in front of number with 1 digit.
+    */
     var addZero = function (num) {
         return (num < 10 ? "0" : "") + num;
     }
@@ -57,6 +60,9 @@ Common = (function () {
             + addZero(date.getSeconds());
     };
 
+    /**
+    * Get the current date in string format.
+    */
     var dateNowJSON = function () {
         return (new Date()).toJSON();
     };
@@ -280,11 +286,11 @@ Common = (function () {
     /**
     * Refresh the data for all active tracking numbers.
     */
-    var refreshActiveTrackingNumbers = function (callback, instanceId) {
+    var refreshActiveTrackingNumbers = function (exludeInstanceId, callback) {
         // send message to browser's backgrounds to notify them about the start of refreshing
         chrome.runtime.sendMessage({
             type: 'background_refresh_start',
-            excludeId: instanceId
+            excludeId: exludeInstanceId
         });
 
         storageGet([
@@ -385,11 +391,13 @@ Common = (function () {
                             // send message to browser's backgrounds and popups to notify them about the end of refreshing
                             chrome.runtime.sendMessage({
                                 type: 'background_refresh_end',
-                                excludeId: instanceId
+                                excludeId: exludeInstanceId
                             });
 
                             // return the new results if there is a callback method
                             if (callback && (typeof callback === "function")) {
+                                // also send a list of all active tracking numbers
+                                result[storageStrings.activeTrackingNumbers] = activeTrackingNumbers;
                                 callback(result);
                             }
 
@@ -675,22 +683,27 @@ Common = (function () {
 
                 storageGet(allTrackingNumbersStorageStrings,
                     function (response) {
-                        // add data for all packages to the result
-                        for (var i = 0; i < totalTrackingNumbers; i++) {
-                            allPackagesWithData[allTrackingNumbers[i]] = response[allTrackingNumbersStorageStrings[i]];
-                        }
-
-                        // update the result
-                        result[storageStrings.trackingNumbers] = allPackagesWithData;
-
                         // send the result to the callback function
                         if (callback && (typeof callback === "function")) {
+                            // add the data of each package to the result
+                            for (var i = 0; i < totalTrackingNumbers; i++) {
+                                allPackagesWithData[allTrackingNumbers[i]] = response[allTrackingNumbersStorageStrings[i]];
+                            }
+
+                            // update the result
+                            result[storageStrings.trackingNumbers] = allPackagesWithData;
+
                             callback(result);
                         }
                     });
             }
         });
     };
+
+    /**
+    * Generate a random Id for this instance.
+    */
+    var instanceId = generateRandomId();
 
     return {
         storageStrings: storageStrings,
@@ -699,7 +712,6 @@ Common = (function () {
         formatPackageData: formatPackageData,
         getStatusOfTrackingData: getStatusOfTrackingData,
         dateDiff: dateDiff,
-        generateRandomId: generateRandomId,
         getPackage: getPackage,
         storageGet: storageGet,
         storageSet: storageSet,
@@ -718,6 +730,7 @@ Common = (function () {
         changeRefreshInterval: changeRefreshInterval,
         changeEnableNotifications: changeEnableNotifications,
         removeNotifications: removeNotifications,
-        getAllData: getAllData
+        getAllData: getAllData,
+        instanceId: instanceId
     };
 })();
