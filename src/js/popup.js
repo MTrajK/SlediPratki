@@ -94,7 +94,7 @@ new Vue({
 
             // add package modal
             MaterializeComponents.addModal.addModalInstance = M.Modal.init(this.$el.querySelector("#addModal"), {
-                onOpenEnd : function () {
+                onOpenEnd: function () {
                     thisApp.activeModal = "add";
                 },
                 onCloseStart: function () {
@@ -110,17 +110,17 @@ new Vue({
 
             // action package modal
             MaterializeComponents.actionModalInstance = M.Modal.init(this.$el.querySelector("#actionModal"), {
-                onOpenEnd : function () {
+                onOpenEnd: function () {
                     thisApp.activeModal = "action";
                 },
                 onCloseStart: function () {
                     thisApp.activeModal = undefined;
                 }
             });
-            
+
             // refresh packages modal
             MaterializeComponents.refreshModal.refreshModalInstance = M.Modal.init(this.$el.querySelector("#refreshModal"), {
-                onOpenEnd : function () {
+                onOpenEnd: function () {
                     thisApp.activeModal = "refresh";
                 },
                 onCloseStart: function () {
@@ -133,7 +133,7 @@ new Vue({
 
             // edit package modal
             MaterializeComponents.editModal.editModalInstance = M.Modal.init(this.$el.querySelector("#editModal"), {
-                onOpenEnd : function () {
+                onOpenEnd: function () {
                     thisApp.activeModal = "edit";
                 },
                 onCloseStart: function () {
@@ -164,6 +164,10 @@ new Vue({
                 if (request.type === 'background_refresh_end' && request.excludeId !== Common.instanceId) {
                     thisApp.getAllDataFromBackground();
                 }
+                // also refresh the popup data if a new package is added in the background
+                else if (request.type === 'added_new_package') {
+                    thisApp.getAllDataFromBackground();
+                }
             });
 
             // listen for keypress event
@@ -177,7 +181,7 @@ new Vue({
                 // enter is pressed
                 if (e.keyCode == 13) {
                     var activeModal = thisApp.activeModal;
-                    
+
                     // reset this property because onCloseStart is slow
                     thisApp.activeModal = undefined;
 
@@ -267,6 +271,11 @@ new Vue({
 
             // get all data from the storage
             Common.getAllData(function (response) {
+                // clear the lists with tracking numbers
+                thisApp.allTrackingNumbers = [];
+                thisApp.activePackages = [];
+                thisApp.archivePackages = [];
+
                 // get all settings properties
                 thisApp.settings.autoRefresh = response[Common.storageStrings.autoRefresh];
                 thisApp.settings.refreshInterval = response[Common.storageStrings.refreshInterval];
@@ -296,11 +305,8 @@ new Vue({
                 // update the refresh interval select manually
                 thisApp.updateRefreshIntervalSelect();
 
-                // remove the main spiner after loading the whole info and init all components
-                // show it just little, to be noticed (looks good)
-                setTimeout(function () {
-                    MaterializeComponents.mainSpinner.style.display = "none";
-                }, 1000);
+                // remove the main spiner after loading the whole info
+                MaterializeComponents.mainSpinner.style.display = "none";
             });
         },
         updateRefreshIntervalSelect: function () {
@@ -508,6 +514,7 @@ new Vue({
             Common.addNewPackage(
                 thisApp.addNewPackage.trackingNumber,
                 thisApp.addNewPackage.packageDescription,
+                false,
                 function (response) {
                     // add the formated data in the UI
                     var formatedResponse = Common.formatPackageData(response);

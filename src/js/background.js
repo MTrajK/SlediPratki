@@ -10,6 +10,9 @@
     // refresh flag (to solve problems with sync with the rest browser's backgrounds, some kind of concurrency problem)
     var freeToRefresh = true;
 
+    // adding new package from background flag
+    var addedPackageTrackinNumber = undefined;
+
     /**
     * 6. Refresh the data.
     */
@@ -111,7 +114,7 @@
     Common.storageGet([Common.storageStrings.version], checkVersion);
 
     /**
-    * listen for message from another browser or popup
+    * listen for message from another browser or popup.
     */
     chrome.runtime.onMessage.addListener((request) => {
         // adjust interval/timeout if the background data is refreshed in another browser
@@ -127,6 +130,57 @@
             // and update the refresh flag
             freeToRefresh = true;
             setBackgroundInterval();
+        }
+    });
+
+    /**
+    * Context menu for adding a new tracking number.
+    */
+    chrome.contextMenus.create({
+        title: "Додај нова пратка",
+        contexts: ["selection"],
+        onclick: function (info, tab) {
+            Common.storageGet([
+                Common.storageStrings.activeTrackingNumbers
+            ], function (response) {
+                var selectionText = info.selectionText;
+                var formatedSelectionText = selectionText.toUpperCase().replace(/\W/g, '');
+                var activeTrackingNumbers = response[Common.storageStrings.activeTrackingNumbers];
+
+                if (formatedSelectionText.length != selectionText.length ||
+                    formatedSelectionText.length < 8 ||
+                    formatedSelectionText.length > 25) {
+                    // show alert because tracking number is not valid
+                    chrome.tabs.executeScript(tab.id, {
+                        // do not show the selected text, javascript code can be injected (eval is calling)
+                        code: "alert('Селектираниот текст не е валиден број на пратка.')"
+                    });
+                }
+                else if (addedPackageTrackinNumber === formatedSelectionText ||
+                    activeTrackingNumbers.indexOf(formatedSelectionText) !== -1) {
+                    // show alert because tracking number exist
+                    chrome.tabs.executeScript(tab.id, {
+                        // do not show the selected text, javascript code can be injected (eval is calling)
+                        code: "alert('Пратката постои.')"
+                    });
+                }
+                else {
+                    // update flag for adding
+                    addedPackageTrackinNumber = formatedSelectionText;
+
+                    // add the tracking number
+                    Common.addNewPackage(formatedSelectionText, "", true, function () {
+                        // restore flag
+                        addedPackageTrackinNumber = undefined;
+
+                        // send message to popups to notify them about adding of new package
+                        chrome.runtime.sendMessage({
+                            type: 'added_new_package',
+                            excludeId: Common.instanceId
+                        });
+                    });
+                }
+            });
         }
     });
 

@@ -225,6 +225,12 @@ Common = (function () {
         });
     };
 
+    /* 
+        All extensions have personal chrome.storage.sync,
+        you can't access some other extensions storage!
+        When an extension is deleted, the storage is also deleted!
+    */
+
     /**
     * Get from the chrome storage.
     */
@@ -417,15 +423,13 @@ Common = (function () {
     /**
     * Add new package.
     */
-    var addNewPackage = function (trackingNumber, packageDescription, callback) {
+    var addNewPackage = function (trackingNumber, packageDescription, fromBackground, callback) {
         var ajaxCallback = function (apiResponse) {
             storageGet([
-                storageStrings.activeTrackingNumbers
+                storageStrings.activeTrackingNumbers,
+                storageStrings.enableNotifications,
+                storageStrings.totalNotifications
             ], function (response) {
-                // add this tracking number into active tracking numbers list
-                var newActiveTrackingNumbers = response[storageStrings.activeTrackingNumbers];
-                newActiveTrackingNumbers.push(trackingNumber);
-
                 // change api response if error
                 if (apiResponse === "error") {
                     apiResponse = [];
@@ -440,10 +444,37 @@ Common = (function () {
                 newPackage.notifications = 0;
                 newPackage.trackingData = apiResponse;
 
-                // update active tracking numbers list and add the new package
                 var updateStorage = {};
-                updateStorage[storageStrings.trackingNumbers + trackingNumber] = newPackage;
+
+                // update notifications if package is added from the background
+                if (fromBackground) {
+                    // update the number of notifications for this package
+                    var newNotifications = apiResponse.length;
+                    newPackage.notifications = newNotifications;
+
+                    // update the total number of notifications
+                    var totalNotifications = response[storageStrings.totalNotifications] + newNotifications;
+                    updateStorage[storageStrings.totalNotifications] = totalNotifications;
+
+                    // update the badge
+                    setBadge(totalNotifications);
+
+                    var enableNotifications = response[storageStrings.enableNotifications];
+
+                    // show notifications window in the right bottom corner
+                    // show only if there are new notifications and notifications are enabled
+                    if (enableNotifications && newNotifications > 0) {
+                        showNotifications(newNotifications);
+                    }
+                } 
+                
+                // add this tracking number into active tracking numbers list
+                var newActiveTrackingNumbers = response[storageStrings.activeTrackingNumbers];
+                newActiveTrackingNumbers.push(trackingNumber);
                 updateStorage[storageStrings.activeTrackingNumbers] = newActiveTrackingNumbers;
+
+                // update active tracking numbers list and add the new package
+                updateStorage[storageStrings.trackingNumbers + trackingNumber] = newPackage;
 
                 storageSet(updateStorage, function () {
                     // send the new package to the callback method
@@ -621,7 +652,7 @@ Common = (function () {
             thisTrackingNumber
         ], function (response) {
             var package = response[thisTrackingNumber];
-            
+
             // update total notifications
             var totalNotifications = response[storageStrings.totalNotifications] - package.notifications;
 
