@@ -10,8 +10,8 @@
     // refresh flag (to solve problems with sync with the rest browser's backgrounds, some kind of concurrency problem)
     var freeToRefresh = true;
 
-    // adding new package from background flag
-    var addedPackageTrackinNumber = undefined;
+    // adding new packages from background flag (to prevent adding a same tracking number more than once)
+    var addedPackagesTrackingNumbers = [];
 
     /**
     * 6. Refresh the data.
@@ -156,7 +156,7 @@
                         code: "alert('Селектираниот текст не е валиден број на пратка.')"
                     });
                 }
-                else if (addedPackageTrackinNumber === formatedSelectionText ||
+                else if (addedPackagesTrackingNumbers.indexOf(formatedSelectionText) !== -1 ||
                     activeTrackingNumbers.indexOf(formatedSelectionText) !== -1) {
                     // show alert because tracking number exist
                     chrome.tabs.executeScript(tab.id, {
@@ -166,12 +166,13 @@
                 }
                 else {
                     // update flag for adding
-                    addedPackageTrackinNumber = formatedSelectionText;
+                    addedPackagesTrackingNumbers.push(formatedSelectionText);
 
                     // add the tracking number
                     Common.addNewPackage(formatedSelectionText, "", true, function () {
-                        // restore flag
-                        addedPackageTrackinNumber = undefined;
+                        // delete this tracking number from the flag
+                        var indexToDelete = addedPackagesTrackingNumbers.indexOf(formatedSelectionText);
+                        addedPackagesTrackingNumbers.splice(indexToDelete, 1);
 
                         // send message to popups to notify them about adding of new package
                         chrome.runtime.sendMessage({
