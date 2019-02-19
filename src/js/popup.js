@@ -505,6 +505,9 @@ new Vue({
             MaterializeComponents.addModal.trackingNumberInput.focus();
         },
         addNewActivePackage: function () {
+            // can not close the add modal by clicking outside when adding a package
+            MaterializeComponents.addModal.addModalInstance.options.dismissible = false;
+
             // add spinner
             MaterializeComponents.addModal.addSpinner.style.display = "block";
 
@@ -542,6 +545,9 @@ new Vue({
 
                     // close modal after getting the results from the api and writting them in storage
                     MaterializeComponents.addModal.addModalInstance.close();
+
+                    // restore dismissible after the package is added
+                    MaterializeComponents.addModal.addModalInstance.options.dismissible = true;
                 });
         },
 
@@ -559,6 +565,9 @@ new Vue({
             MaterializeComponents.refreshModal.refreshModalInstance.open();
         },
         refreshPackages: function () {
+            // can not close the add modal by clicking outside when refreshing active packages
+            MaterializeComponents.refreshModal.refreshModalInstance.options.dismissible = false;
+
             // add refresh spinner
             MaterializeComponents.refreshModal.refreshSpinner.style.display = "block";
 
@@ -590,6 +599,9 @@ new Vue({
 
                 // close the refresh modal in the end
                 MaterializeComponents.refreshModal.refreshModalInstance.close();
+
+                // restore dismissible after the packages are refreshed
+                MaterializeComponents.refreshModal.refreshModalInstance.options.dismissible = true;
             });
         },
 

@@ -130,11 +130,19 @@ html, body {
     z-index: 1010;
 }
 
-.add-spinner {
+.small-spinner {
     width: 64px;
     height: 64px;
     top: calc(50% - 32px);
     left: calc(50% - 32px);
+}
+
+.small-spinner-logo {
+    position: absolute;
+    width: 42px;
+    height: 42px;
+    top: calc(50% - 21px);
+    left: calc(50% - 21px);
 }
 
 .main-spinner {
