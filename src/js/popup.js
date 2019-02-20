@@ -582,7 +582,7 @@ new Vue({
             var thisApp = this;
 
             // refresh active tracking numbers
-            Common.refreshActiveTrackingNumbers(Common.instanceId, function (response) {
+            Common.refreshActiveTrackingNumbers(function (response) {
 
                 // get all active tracking numbers
                 var activeTrackingNumbers = response[Common.storageStrings.activeTrackingNumbers];

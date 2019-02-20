@@ -40,7 +40,7 @@
         // minus one second just in case (to handle small variations)
         if (refreshInterval - 1000 <= diffRefresh) {
             // refresh data
-            Common.refreshActiveTrackingNumbers(Common.instanceId, undefined);
+            Common.refreshActiveTrackingNumbers();
         }
     };
 
@@ -130,6 +130,13 @@
             // and update the refresh flag
             freeToRefresh = true;
             setBackgroundInterval();
+        }
+        else if (request.type === 'changed_badge' && request.excludeId !== Common.instanceId) {
+            Common.storageGet([Common.storageStrings.totalNotifications], function (response) {
+                var notifications = response[Common.storageStrings.totalNotifications];
+                // update the badge for this browser
+                Common.setBadge(notifications, false);
+            });
         }
     });
 

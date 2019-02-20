@@ -38,6 +38,18 @@ Common = (function () {
     defaultStorageValues[storageStrings.maxArchivePackages] = 15;
 
     /**
+    * Generate random Id string.
+    */
+    var generateRandomId = function () {
+        return Math.random().toString() + Math.random().toString();
+    };
+
+    /**
+    * Generate a random Id for this instance.
+    */
+    var instanceId = generateRandomId();
+
+    /**
     * Helper method to add zero in front of number with 1 digit.
     */
     var addZero = function (num) {
@@ -203,13 +215,6 @@ Common = (function () {
     };
 
     /**
-    * Generate random Id string.
-    */
-    var generateRandomId = function () {
-        return Math.random().toString() + Math.random().toString();
-    };
-
-    /**
     * Get data for some package from the posta.com.mk service.
     */
     var getPackage = function (trackingNumber, success, fail) {
@@ -262,7 +267,7 @@ Common = (function () {
     /**
     * Add or remove badge with notifications on the extension icon.
     */
-    var setBadge = function (notifications) {
+    var setBadge = function (notifications, sync) {
         if (notifications < 1) {
             // remove badge
             chrome.browserAction.setBadgeText({ text: "" });
@@ -270,6 +275,15 @@ Common = (function () {
             // add badge
             chrome.browserAction.setBadgeBackgroundColor({ color: "#4db6ac" });
             chrome.browserAction.setBadgeText({ text: notifications + "" });
+        }
+
+        // chrome.browserAction is synced only in the pc (the badge text will be changed automatically on different browsers in the same pc)
+        if (sync === true) {
+            // send message to all browsers, sync on different pc
+            chrome.runtime.sendMessage({
+                type: 'changed_badge',
+                excludeId: instanceId
+            });
         }
     };
 
@@ -292,11 +306,11 @@ Common = (function () {
     /**
     * Refresh the data for all active tracking numbers.
     */
-    var refreshActiveTrackingNumbers = function (exludeInstanceId, callback) {
+    var refreshActiveTrackingNumbers = function (callback) {
         // send message to browser's backgrounds to notify them about the start of refreshing
         chrome.runtime.sendMessage({
             type: 'background_refresh_start',
-            excludeId: exludeInstanceId
+            excludeId: instanceId
         });
 
         storageGet([
@@ -383,7 +397,7 @@ Common = (function () {
                         result[storageStrings.totalNotifications] = allNotifications;
 
                         // update the badge
-                        setBadge(allNotifications);
+                        setBadge(allNotifications, true);
 
                         // show notifications window in the right bottom corner
                         // show only if there are new notifications and notifications are enabled
@@ -397,7 +411,7 @@ Common = (function () {
                             // send message to browser's backgrounds and popups to notify them about the end of refreshing
                             chrome.runtime.sendMessage({
                                 type: 'background_refresh_end',
-                                excludeId: exludeInstanceId
+                                excludeId: instanceId
                             });
 
                             // return the new results if there is a callback method
@@ -457,7 +471,7 @@ Common = (function () {
                     updateStorage[storageStrings.totalNotifications] = totalNotifications;
 
                     // update the badge
-                    setBadge(totalNotifications);
+                    setBadge(totalNotifications, true);
 
                     var enableNotifications = response[storageStrings.enableNotifications];
 
@@ -466,8 +480,8 @@ Common = (function () {
                     if (enableNotifications && newNotifications > 0) {
                         showNotifications(newNotifications);
                     }
-                } 
-                
+                }
+
                 // add this tracking number into active tracking numbers list
                 var newActiveTrackingNumbers = response[storageStrings.activeTrackingNumbers];
                 newActiveTrackingNumbers.push(trackingNumber);
@@ -657,7 +671,7 @@ Common = (function () {
             var totalNotifications = response[storageStrings.totalNotifications] - package.notifications;
 
             // update the badge
-            setBadge(totalNotifications);
+            setBadge(totalNotifications, true);
 
             // remove all notifications for this package
             package.notifications = 0;
@@ -734,12 +748,8 @@ Common = (function () {
         });
     };
 
-    /**
-    * Generate a random Id for this instance.
-    */
-    var instanceId = generateRandomId();
-
     return {
+        instanceId: instanceId,
         storageStrings: storageStrings,
         formatDate: formatDate,
         formatNoticeText: formatNoticeText,
@@ -764,7 +774,6 @@ Common = (function () {
         changeRefreshInterval: changeRefreshInterval,
         changeEnableNotifications: changeEnableNotifications,
         removeNotifications: removeNotifications,
-        getAllData: getAllData,
-        instanceId: instanceId
+        getAllData: getAllData
     };
 })();
