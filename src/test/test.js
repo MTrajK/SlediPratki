@@ -1,3 +1,4 @@
+/* Delete this, when releasing (this is only for testing) */
 (function () {
     // delete the whole storage
     chrome.storage.sync.clear(function () {
