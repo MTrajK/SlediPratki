@@ -162,11 +162,11 @@ new Vue({
             chrome.runtime.onMessage.addListener((request) => {
                 // refresh popup data if the background data is refreshed in another browser
                 if (request.type === 'background_refresh_end' && request.excludeId !== Common.instanceId) {
-                    thisApp.getAllDataFromBackground();
+                    thisApp.getAllDataFromBackground("Пратките се автоматски освежени!");
                 }
                 // also refresh the popup data if a new package is added in the background
                 else if (request.type === 'added_new_package') {
-                    thisApp.getAllDataFromBackground();
+                    thisApp.getAllDataFromBackground("Додадена е нова пратка!");
                 }
             });
 
@@ -263,7 +263,7 @@ new Vue({
         **   COMMON METHODS  **
         ***********************/
 
-        getAllDataFromBackground: function () {
+        getAllDataFromBackground: function (backgroundChange) {
             // add main spinner
             MaterializeComponents.mainSpinner.style.display = "block";
 
@@ -307,6 +307,11 @@ new Vue({
 
                 // remove the main spiner after loading the whole info
                 MaterializeComponents.mainSpinner.style.display = "none";
+
+                // display a toast if this method was activated because of a background change
+                if (backgroundChange !== undefined) {
+                    M.toast({html: backgroundChange});
+                }
             });
         },
         updateRefreshIntervalSelect: function () {
