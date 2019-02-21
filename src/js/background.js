@@ -9,6 +9,7 @@
 
     // refresh flag (to solve problems with sync with the rest browser's backgrounds, some kind of concurrency problem)
     var freeToRefresh = true;
+    var freeToRefreshTimeout = undefined;
 
     // adding new packages from background flag (to prevent adding a same tracking number more than once)
     var addedPackagesTrackingNumbers = [];
@@ -124,11 +125,24 @@
             freeToRefresh = false;
             clearTimeout(timeoutInstance);
             clearInterval(intervalInstance);
+
+            // this timer is in case if the refresh is not completed (browser is closed, popup is closed, background script is stopped, etc)
+            freeToRefreshTimeout = setTimeout(function () {
+                if (freeToRefresh === false) {
+                    freeToRefresh = true;
+                    setBackgroundInterval();
+                }
+            },
+                // 2 seconds more just in case (axios is asynchronous by default, and all calls should end before maxRequestTime)
+                Common.maxRequestTime + 2000);
         }
         else if (request.type === 'background_refresh_end' && request.excludeId !== Common.instanceId) {
-            // set a new background interval in all browsers after the ajax calls
-            // and update the refresh flag
+            // update the refresh flag and timeout
+            clearTimeout(freeToRefreshTimeout);
             freeToRefresh = true;
+            // clear this interval just in case (this is case if freeToRefreshTimeout was executed previously, which shouldn't be possible)
+            clearInterval(intervalInstance);
+            // and set a new background interval after the ajax calls
             setBackgroundInterval();
         }
         else if (request.type === 'changed_badge' && request.excludeId !== Common.instanceId) {

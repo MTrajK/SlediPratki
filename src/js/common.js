@@ -751,6 +751,7 @@ Common = (function () {
     return {
         instanceId: instanceId,
         storageStrings: storageStrings,
+        maxRequestTime: maxRequestTime,
         formatDate: formatDate,
         formatNoticeText: formatNoticeText,
         formatPackageData: formatPackageData,
