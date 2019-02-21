@@ -156,14 +156,17 @@
 
     /**
     * Context menu for adding a new tracking number.
+    * Don't show the selected text, javascript code can be injected (eval is calling)
     */
     chrome.contextMenus.create({
         title: "Додај нова пратка",
         contexts: ["selection"],
+        documentUrlPatterns: ["http://*/*", "https://*/*"], // show the context menu only on valid websites
         onclick: function (info) {
             Common.storageGet([
                 Common.storageStrings.activeTrackingNumbers
             ], function (response) {
+                // format selection
                 var selectionText = info.selectionText;
                 var formatedSelectionText = selectionText.toUpperCase().replace(/\W/g, '');
                 var activeTrackingNumbers = response[Common.storageStrings.activeTrackingNumbers];
@@ -173,7 +176,6 @@
                     formatedSelectionText.length > 25) {
                     // show alert because tracking number is not valid
                     chrome.tabs.executeScript({
-                        // do not show the selected text, javascript code can be injected (eval is calling)
                         code: "alert('Селектираниот текст не е валиден број на пратка.')"
                     });
                 }
@@ -181,7 +183,6 @@
                     activeTrackingNumbers.indexOf(formatedSelectionText) !== -1) {
                     // show alert because tracking number exist
                     chrome.tabs.executeScript({
-                        // do not show the selected text, javascript code can be injected (eval is calling)
                         code: "alert('Пратката постои.')"
                     });
                 }
