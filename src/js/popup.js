@@ -267,6 +267,14 @@ new Vue({
             // add main spinner
             MaterializeComponents.mainSpinner.style.display = "block";
 
+            // scroll to the top of the view
+            MaterializeComponents.scrollableContent.scrollTop = 0;
+
+            // close the active collapsibles
+            for (var i = 0; i < this.activePackages.length; i++) {
+                MaterializeComponents.activeInstance.close(i);
+            }
+
             var thisApp = this;
 
             // get all data from the storage
@@ -310,7 +318,7 @@ new Vue({
 
                 // display a toast if this method was activated because of a background change
                 if (backgroundChange !== undefined) {
-                    M.toast({html: backgroundChange});
+                    M.toast({ html: backgroundChange });
                 }
             });
         },
