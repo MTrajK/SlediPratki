@@ -1,8 +1,10 @@
 {
-    "name": "Следи Пратки",
-    "description": "Следи пратки во Македонија (со помош на сервисот на А.Д. Македонска Пошта)",
-    "version": "1.1.0",
+    "name": "Следи Пратки (Sledi Pratki)",
+    "short_name": "Следи Пратки",
+    "description": "Следи пратки во Македонија со помош на сервисот на А.Д. Македонска Пошта (Shipment Tracking in Macedonia)",
+    "version": "1.0.0",
     "manifest_version": 2,
+    "author": "Meto Trajkovski",
 
     "icons": {
         "16": "img/icon16.png",
@@ -19,7 +21,7 @@
             "48": "img/icon48.png",
             "128": "img/icon128.png"
         },
-        "default_title": "Следи Пратки"
+        "default_title": "Следи пратки во Македонија"
     },
 
     "background": {
@@ -32,12 +34,11 @@
     },
 
     "permissions": [
-        "https://www.posta.com.mk/*",
+        "https://www.posta.com.mk/tnt/api/query?id=*",
         "storage",
         "contextMenus",
         "notifications",
-        "tabs",
-        "*://*/*"
+        "activeTab"
     ],
     
     "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"

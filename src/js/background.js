@@ -160,7 +160,7 @@
     chrome.contextMenus.create({
         title: "Додај нова пратка",
         contexts: ["selection"],
-        onclick: function (info, tab) {
+        onclick: function (info) {
             Common.storageGet([
                 Common.storageStrings.activeTrackingNumbers
             ], function (response) {
@@ -172,7 +172,7 @@
                     formatedSelectionText.length < 8 ||
                     formatedSelectionText.length > 25) {
                     // show alert because tracking number is not valid
-                    chrome.tabs.executeScript(tab.id, {
+                    chrome.tabs.executeScript({
                         // do not show the selected text, javascript code can be injected (eval is calling)
                         code: "alert('Селектираниот текст не е валиден број на пратка.')"
                     });
@@ -180,7 +180,7 @@
                 else if (addedPackagesTrackingNumbers.indexOf(formatedSelectionText) !== -1 ||
                     activeTrackingNumbers.indexOf(formatedSelectionText) !== -1) {
                     // show alert because tracking number exist
-                    chrome.tabs.executeScript(tab.id, {
+                    chrome.tabs.executeScript({
                         // do not show the selected text, javascript code can be injected (eval is calling)
                         code: "alert('Пратката постои.')"
                     });
