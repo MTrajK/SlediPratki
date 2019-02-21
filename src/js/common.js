@@ -19,7 +19,19 @@ Common = (function () {
         enableNotifications: "SlediPratki.Settings.EnableNotifications",
         maxActivePackages: "SlediPratki.Settings.MaxActivePackages",
         maxArchivePackages: "SlediPratki.Settings.MaxArchivePackages",
+        storageChange: "SlediPratki.Settings.StorageChange",
         trackingNumbers: "SlediPratki.TrackingNumbers."
+    };
+
+    /**
+    * Storage changes strings.
+    */
+    var storageChangeStrings = {
+        backgroundRefreshStart: "background_refresh_start",
+        backgroundRefreshEnd: "background_refresh_end",
+        changedBadge: "changed_badge",
+        addedNewPackage: "added_new_package",
+        closeAllPopups: "close_all_popups"
     };
 
     /**
@@ -36,6 +48,11 @@ Common = (function () {
     defaultStorageValues[storageStrings.enableNotifications] = true;
     defaultStorageValues[storageStrings.maxActivePackages] = 20;
     defaultStorageValues[storageStrings.maxArchivePackages] = 15;
+    defaultStorageValues[storageStrings.storageChange] = {
+        type: undefined,
+        excludeId: undefined,
+        time: undefined
+    };
 
     /**
     * Generate random Id string.
@@ -751,6 +768,7 @@ Common = (function () {
     return {
         instanceId: instanceId,
         storageStrings: storageStrings,
+        storageChangeStrings: storageChangeStrings,
         maxRequestTime: maxRequestTime,
         formatDate: formatDate,
         formatNoticeText: formatNoticeText,
