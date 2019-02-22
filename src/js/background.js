@@ -204,11 +204,7 @@
                 var activeTrackingNumbers = response[Common.storageStrings.activeTrackingNumbers];
 
                 // check the storage for changes
-                var storageChange = changes[Common.storageStrings.storageChange];
-                if (storageChange !== undefined) {
-                    // i need only the newest changes
-                    storageChange = storageChange.newValue;
-                }
+                var storageChange = response[Common.storageStrings.storageChange];
 
                 if (formatedSelectionText.length != selectionText.length ||
                     formatedSelectionText.length < 8 ||
@@ -225,14 +221,14 @@
                     });
                 }
                 else if (storageChange !== undefined &&
-                    storageChange.newValue.type === Common.eventsStrings.addPackageStart) {
+                    storageChange.type === Common.eventsStrings.addPackageStart) {
                     // show alert because in this moment some tracking number is adding
                     chrome.tabs.executeScript({
                         code: "alert('Во моментов се додава пратка, почекајте неколку секунди.')"
                     });
                 }
                 else if (storageChange !== undefined &&
-                    storageChange.newValue.type === Common.eventsStrings.refreshStart) {
+                    storageChange.type === Common.eventsStrings.refreshStart) {
                     // show alert because in this moment the active packages are refreshing
                     chrome.tabs.executeScript({
                         code: "alert('Во моментов се освежуваат пратките, почекајте неколку секунди.')"

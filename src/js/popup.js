@@ -1,27 +1,18 @@
 (function () {
 
     var closeAllPopups = {};
-    closeAllPopups[Common.storageStrings.storageChange] = {
-        type: Common.eventsStrings.closeAllPopups,
-        instanceId: Common.instanceId,
-        time: Common.dateNowJSON()
-    };
+    closeAllPopups[Common.storageStrings.closeAllPopups] = Common.instanceId;
 
     // send message to all other browsers to close the popups
     Common.storageSet(closeAllPopups);
 
     // listen for change message from another browser's popup
     Common.storageListener(function (changes) {
-        var storageChange = changes[Common.storageStrings.storageChange];
+        var storageChange = changes[Common.storageStrings.closeAllPopups];
 
-        if (storageChange !== undefined && storageChange.newValue.instanceId !== Common.instanceId) {
-            // i need only the newest changes
-            storageChange = storageChange.newValue;
-
+        if (storageChange !== undefined && storageChange.newValue !== Common.instanceId) {
             // close this popup if new is open
-            if (storageChange.type === Common.eventsStrings.closeAllPopups) {
-                window.close();
-            }
+            window.close();
         }
     });
 
@@ -196,7 +187,6 @@ new Vue({
                         thisApp.getAllDataFromBackground("Додадена е нова пратка!");
                     }
                 }
-
             });
 
             // listen for keypress event
@@ -344,11 +334,13 @@ new Vue({
 
                 // check if here is for some proccess in the backround
                 var storageChange = response[Common.storageStrings.storageChange];
-                var lastChange = Common.dateDiff(storageChange.time, Common.dateNowJSON());
 
                 // remove the main spiner after loading the whole info
-                if (storageChange.type === Common.eventsStrings.refreshStart ||
-                    storageChange.type === Common.eventsStrings.addPackageStart) {
+                if (storageChange !== undefined &&
+                    storageChange.type === Common.eventsStrings.refreshStart ||
+                    storageChange.type === Common.eventsStrings.addPackageStart) {    
+                    var lastChange = Common.dateDiff(storageChange.time, Common.dateNowJSON());
+
                     // if there is an active process in the background, check if it happened a long time ago
                     if (lastChange > Common.maxRequestTime + Common.requestExtraTime) {
                         MaterializeComponents.mainSpinner.style.display = "none";

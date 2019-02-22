@@ -20,7 +20,8 @@ Common = (function () {
         enableNotifications: "SlediPratki.Settings.EnableNotifications",
         maxActivePackages: "SlediPratki.Settings.MaxActivePackages",
         maxArchivePackages: "SlediPratki.Settings.MaxArchivePackages",
-        storageChange: "SlediPratki.Settings.StorageChange",
+        storageChange: "SlediPratki.StorageChange",
+        closeAllPopups: "SlediPratki.CloseAllPopups",
         trackingNumbers: "SlediPratki.TrackingNumbers."
     };
 
@@ -37,8 +38,7 @@ Common = (function () {
         refreshEnd: "refresh_end",
         addPackageStart: "add_package_start",
         addPackageEnd: "add_package_end",
-        notificationsChange: "notifications_change",
-        closeAllPopups: "close_all_popups"
+        notificationsChange: "notifications_change"
     };
 
     /**
@@ -61,6 +61,7 @@ Common = (function () {
         // use time to know if this change is still active
         time: undefined // string
     };
+    defaultStorageValues[storageStrings.closeAllPopups] = undefined; // instanceId
 
     /**
     * Generate random Id string.
@@ -441,12 +442,6 @@ Common = (function () {
                             // save the new results in storage
                             storageSet(result, function () {
 
-                                // send message to browser's backgrounds and popups to notify them about the end of refreshing
-                                chrome.runtime.sendMessage({
-                                    type: 'background_refresh_end',
-                                    excludeId: instanceId
-                                });
-
                                 // return the new results if there is a callback method
                                 if (callback && (typeof callback === "function")) {
                                     // also send a list of all active tracking numbers
@@ -524,8 +519,8 @@ Common = (function () {
                 updateStorage[storageStrings.trackingNumbers + trackingNumber] = newPackage;
 
                 // send change message for add package end
-                updateStorage[storageStrings.addPackageEnd] = {
-                    type: eventsStrings.addPackageStart,
+                updateStorage[storageStrings.storageChange] = {
+                    type: eventsStrings.addPackageEnd,
                     instanceId: instanceId,
                     time: dateNowJSON()
                 };
@@ -541,8 +536,8 @@ Common = (function () {
 
         // send change message for add package start
         var addPackageStart = {};
-        addPackageStart[storageStrings.addPackageStart] = {
-            type: eventsStrings.refreshStart,
+        addPackageStart[storageStrings.storageChange] = {
+            type: eventsStrings.addPackageStart,
             instanceId: instanceId,
             time: dateNowJSON()
         };
