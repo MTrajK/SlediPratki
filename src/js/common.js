@@ -24,14 +24,23 @@ Common = (function () {
     };
 
     /**
-    * Storage changes strings. Events that need to be handle by the rest browsers and pcs.
+    * Storage changes strings. Only for events that need to be handle by the rest browsers and pcs.
+    * No need of change listening for the methods that are executing only in the popup, except removeNotifications. 
+    * (because the popup is opened only in 1 browser)
+    * 
+    * No conflict changes methods: changeAutoRefresh, changeRefreshInterval, changeEnableNotifications, 
+    * moveArchiveToActive, moveActiveToArchive, changePackageDescription, deleteArchivePackage, 
+    * deleteActivePackage, addNewPackage(called from popup), refreshActiveTrackingNumbers(called from popup)
+    * 
+    * Conflict changes methods: removeNotifications, addNewPackage(called from background),
+    * refreshActiveTrackingNumbers(called from background)
     */
     var storageChangeStrings = {
         backgroundRefreshStart: "background_refresh_start",
-        backgroundRefreshEnd: "background_refresh_end",
+        backgroundRefreshEnd: "background_refresh_end", // after this event, update the badge (don't invoke notificationsChange notification)
         backgroundAddPackageStart: "background_add_package_start",
-        backgroundAddPackageEnd: "background_add_package_end",
-        changedBadge: "changed_badge",
+        backgroundAddPackageEnd: "background_add_package_end", // after this event, update the badge (don't invoke notificationsChange notification)
+        notificationsChange: "notifications_change",  // invoke this only on RemoveNotification method (when some active collapsible will be clicked)
         closeAllPopups: "close_all_popups"
     };
 
