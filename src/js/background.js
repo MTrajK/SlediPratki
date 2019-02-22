@@ -124,66 +124,64 @@
     Common.storageListener(function (changes) {
         var storageChange = changes[Common.storageStrings.storageChange];
 
-        if (storageChange !== undefined && storageChange.instanceId !== Common.instanceId) {
+        if (storageChange !== undefined && storageChange.newValue.instanceId !== Common.instanceId) {
             // i need only the newest changes
             storageChange = storageChange.newValue;
-        }
-        // i don't care for changes in this instance
-        else return;
 
-        if (storageChange.type === Common.eventsStrings.refreshStart) {
-            freeToRefresh = false;
+            if (storageChange.type === Common.eventsStrings.refreshStart) {
+                freeToRefresh = false;
 
-            // this timer is in case if the refresh is not completed (browser is closed, popup is closed, background script is stopped, etc)
-            freeToRefreshTimeout = setTimeout(function () {
-                var refreshEnd = {};
-                refreshEnd[Common.storageStrings.storageChange] = {
-                    type: Common.eventsStrings.refreshEnd,
-                    instanceId: Common.instanceId,
-                    time: Common.dateNowJSON()
-                };
+                // this timer is in case if the refresh is not completed (browser is closed, popup is closed, background script is stopped, etc)
+                freeToRefreshTimeout = setTimeout(function () {
+                    var refreshEnd = {};
+                    refreshEnd[Common.storageStrings.storageChange] = {
+                        type: Common.eventsStrings.refreshEnd,
+                        instanceId: Common.instanceId,
+                        time: Common.dateNowJSON()
+                    };
 
-                // send message to all other browsers to close the popups
-                Common.storageSet(refreshEnd);
+                    // send message to all other browsers to close the popups
+                    Common.storageSet(refreshEnd);
+
+                    // this instance should be availble again for refreshing
+                    freeToRefresh = true;
+                }, Common.maxRequestTime + Common.requestExtraTime);
+            }
+            else if (storageChange.type === Common.eventsStrings.refreshEnd) {
+                // clear the timeout
+                clearTimeout(freeToRefreshTimeout);
 
                 // this instance should be availble again for refreshing
                 freeToRefresh = true;
-            }, Common.maxRequestTime + Common.requestExtraTime);
-        }
-        else if (storageChange.type === Common.eventsStrings.refreshEnd) {
-            // clear the timeout
-            clearTimeout(freeToRefreshTimeout);
-            
-            // this instance should be availble again for refreshing
-            freeToRefresh = true;
 
-            // update the badge
-            updateBadge();
-        }
-        else if (storageChange.type === Common.eventsStrings.addPackageStart) {
-            // this timer is in case if the adding package is not completed (browser is closed, popup is closed, background script is stopped, etc)
-            addPackageTimeout = setTimeout(function () {
-                var addPackageEnd = {};
-                addPackageEnd[Common.storageStrings.storageChange] = {
-                    type: Common.eventsStrings.addPackageEnd,
-                    instanceId: Common.instanceId,
-                    time: Common.dateNowJSON()
-                };
+                // update the badge
+                updateBadge();
+            }
+            else if (storageChange.type === Common.eventsStrings.addPackageStart) {
+                // this timer is in case if the adding package is not completed (browser is closed, popup is closed, background script is stopped, etc)
+                addPackageTimeout = setTimeout(function () {
+                    var addPackageEnd = {};
+                    addPackageEnd[Common.storageStrings.storageChange] = {
+                        type: Common.eventsStrings.addPackageEnd,
+                        instanceId: Common.instanceId,
+                        time: Common.dateNowJSON()
+                    };
 
-                // send message to all other browsers to close the popups
-                Common.storageSet(addPackageEnd);
-            }, Common.maxRequestTime + Common.requestExtraTime);
-        }
-        else if (storageChange.type === Common.eventsStrings.addPackageEnd) {
-            // clear the timeout
-            clearTimeout(addPackageTimeout);
-            
-            // update the badge
-            updateBadge();
-        }
-        else if (storageChange.type === Common.eventsStrings.notificationsChange) {
-            // update the badge
-            updateBadge();
+                    // send message to all other browsers to close the popups
+                    Common.storageSet(addPackageEnd);
+                }, Common.maxRequestTime + Common.requestExtraTime);
+            }
+            else if (storageChange.type === Common.eventsStrings.addPackageEnd) {
+                // clear the timeout
+                clearTimeout(addPackageTimeout);
+
+                // update the badge
+                updateBadge();
+            }
+            else if (storageChange.type === Common.eventsStrings.notificationsChange) {
+                // update the badge
+                updateBadge();
+            }
         }
     });
 

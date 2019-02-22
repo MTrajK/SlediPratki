@@ -14,16 +14,14 @@
     Common.storageListener(function (changes) {
         var storageChange = changes[Common.storageStrings.storageChange];
 
-        if (storageChange !== undefined && storageChange.instanceId !== Common.instanceId) {
+        if (storageChange !== undefined && storageChange.newValue.instanceId !== Common.instanceId) {
             // i need only the newest changes
             storageChange = storageChange.newValue;
-        }
-        // i don't care for changes in this instance
-        else return;
 
-        // close this popup if new is open
-        if (storageChange.type === Common.eventsStrings.closeAllPopups) {
-            window.close();
+            // close this popup if new is open
+            if (storageChange.type === Common.eventsStrings.closeAllPopups) {
+                window.close();
+            }
         }
     });
 
@@ -175,30 +173,28 @@ new Vue({
             Common.storageListener(function (changes) {
                 var storageChange = changes[Common.storageStrings.storageChange];
 
-                if (storageChange !== undefined && storageChange.instanceId !== Common.instanceId) {
+                if (storageChange !== undefined && storageChange.newValue.instanceId !== Common.instanceId) {
                     // i need only the newest changes
                     storageChange = storageChange.newValue;
-                }
-                // i don't care for changes in this instance
-                else return;
 
-                if (storageChange.type === Common.eventsStrings.refreshStart) {
-                    // add main spinner
-                    MaterializeComponents.mainSpinner.style.display = "block";
-                }
-                else if (storageChange.type === Common.eventsStrings.refreshEnd) {
-                    // refresh popup data if the background data is refreshed in another browser
-                    // the main spinner is removed in this method
-                    thisApp.getAllDataFromBackground("Пратките се автоматски освежени!");
-                }
-                else if (storageChange.type === Common.eventsStrings.addPackageStart) {
-                    // add main spinner
-                    MaterializeComponents.mainSpinner.style.display = "block";
-                }
-                else if (storageChange.type === Common.eventsStrings.addPackageEnd) {
-                    // refresh the popup data if a new package is added in the background
-                    // the main spinner is removed in this method
-                    thisApp.getAllDataFromBackground("Додадена е нова пратка!");
+                    if (storageChange.type === Common.eventsStrings.refreshStart) {
+                        // add main spinner
+                        MaterializeComponents.mainSpinner.style.display = "block";
+                    }
+                    else if (storageChange.type === Common.eventsStrings.refreshEnd) {
+                        // refresh popup data if the background data is refreshed in another browser
+                        // the main spinner is removed in this method
+                        thisApp.getAllDataFromBackground("Пратките се автоматски освежени!");
+                    }
+                    else if (storageChange.type === Common.eventsStrings.addPackageStart) {
+                        // add main spinner
+                        MaterializeComponents.mainSpinner.style.display = "block";
+                    }
+                    else if (storageChange.type === Common.eventsStrings.addPackageEnd) {
+                        // refresh the popup data if a new package is added in the background
+                        // the main spinner is removed in this method
+                        thisApp.getAllDataFromBackground("Додадена е нова пратка!");
+                    }
                 }
 
             });
