@@ -10,14 +10,20 @@
     // send message to all other browsers to close the popups
     Common.storageSet(closeAllPopups);
 
-     // listen for message from another browser's popup
+    // listen for change message from another browser's popup
     Common.storageListener(function (changes) {
         var storageChange = changes[Common.storageStrings.storageChange];
-        
-        if (storageChange !== undefined && 
-            storageChange.newValue.type === Common.eventsStrings.closeAllPopups &&
-            storageChange.newValue.instanceId !== Common.instanceId) {
-                window.close();
+
+        if (storageChange !== undefined && storageChange.instanceId !== Common.instanceId) {
+            // i need only the newest changes
+            storageChange = storageChange.newValue;
+        }
+        // i don't care for changes in this instance
+        else return;
+
+        // close this popup if new is open
+        if (storageChange.type === Common.eventsStrings.closeAllPopups) {
+            window.close();
         }
     });
 
@@ -166,15 +172,35 @@ new Vue({
             this.getAllDataFromBackground();    // comment this in testing mode
 
             // listen for message from browser's background or this popup
-            chrome.runtime.onMessage.addListener((request) => {
-                // refresh popup data if the background data is refreshed in another browser
-                if (request.type === 'background_refresh_end' && request.excludeId !== Common.instanceId) {
+            Common.storageListener(function (changes) {
+                var storageChange = changes[Common.storageStrings.storageChange];
+
+                if (storageChange !== undefined && storageChange.instanceId !== Common.instanceId) {
+                    // i need only the newest changes
+                    storageChange = storageChange.newValue;
+                }
+                // i don't care for changes in this instance
+                else return;
+
+                if (storageChange.type === Common.eventsStrings.refreshStart) {
+                    // add main spinner
+                    MaterializeComponents.mainSpinner.style.display = "block";
+                }
+                else if (storageChange.type === Common.eventsStrings.refreshEnd) {
+                    // refresh popup data if the background data is refreshed in another browser
+                    // the main spinner is removed in this method
                     thisApp.getAllDataFromBackground("Пратките се автоматски освежени!");
                 }
-                // also refresh the popup data if a new package is added in the background
-                else if (request.type === 'added_new_package') {
+                else if (storageChange.type === Common.eventsStrings.addPackageStart) {
+                    // add main spinner
+                    MaterializeComponents.mainSpinner.style.display = "block";
+                }
+                else if (storageChange.type === Common.eventsStrings.addPackageEnd) {
+                    // refresh the popup data if a new package is added in the background
+                    // the main spinner is removed in this method
                     thisApp.getAllDataFromBackground("Додадена е нова пратка!");
                 }
+
             });
 
             // listen for keypress event
@@ -320,8 +346,22 @@ new Vue({
                 // update the refresh interval select manually
                 thisApp.updateRefreshIntervalSelect();
 
+                // check if here is for some proccess in the backround
+                var storageChange = response[Common.storageStrings.storageChange];
+                var lastChange = Common.dateDiff(storageChange.time, Common.dateNowJSON());
+
                 // remove the main spiner after loading the whole info
-                MaterializeComponents.mainSpinner.style.display = "none";
+                if (storageChange.type === Common.eventsStrings.refreshStart ||
+                    storageChange.type === Common.eventsStrings.addPackageStart) {
+                    // if there is an active process in the background, check if it happened a long time ago
+                    if (lastChange > Common.maxRequestTime + Common.requestExtraTime) {
+                        MaterializeComponents.mainSpinner.style.display = "none";
+                    }
+                }
+                else {
+                    // if there is no active process in the background, remove the main spinner
+                    MaterializeComponents.mainSpinner.style.display = "none";
+                }
 
                 // display a toast if this method was activated because of a background change
                 if (backgroundChange !== undefined) {

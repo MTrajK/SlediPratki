@@ -3,16 +3,10 @@
     // 60 min * 60 sec * 1000 milliseconds = 3.600.000
     var oneHourMillis = 3600000;
 
-    // timeout and interval instances
-    var timeoutInstance = undefined;
-    var intervalInstance = undefined;
-
     // refresh flag (to solve problems with sync with the rest browser's backgrounds, some kind of concurrency problem)
     var freeToRefresh = true;
     var freeToRefreshTimeout = undefined;
-
-    // adding new packages from background flag (to prevent adding a same tracking number more than once)
-    var addedPackagesTrackingNumbers = [];
+    var addPackageTimeout = undefined;
 
     /**
     * 6. Refresh the data.
@@ -62,7 +56,7 @@
     */
     var setBackgroundInterval = function () {
         getStorageAndRefreshData();
-        intervalInstance = setInterval(getStorageAndRefreshData, oneHourMillis);
+        setInterval(getStorageAndRefreshData, oneHourMillis);
     };
 
     /**
@@ -81,7 +75,7 @@
             setBackgroundInterval();
         } else {
             // if the last refresh is new, set timeout for the rest miliseconds
-            timeoutInstance = setTimeout(setBackgroundInterval, diffRefresh - refreshInterval);
+            setTimeout(setBackgroundInterval, diffRefresh - refreshInterval);
         }
     };
 
@@ -115,46 +109,81 @@
     Common.storageGet([Common.storageStrings.version], checkVersion);
 
     /**
-    * listen for message from another browser or popup.
+    *  Update the badge for this browser.
     */
-    chrome.runtime.onMessage.addListener((request) => {
-        // adjust interval/timeout if the background data is refreshed in another browser
-        if (request.type === 'background_refresh_start' && request.excludeId !== Common.instanceId) {
-            // clear the timeouts and intervals for all other browsers before the ajax calls
-            // and update the refresh flag
-            /////////// TODO: Only set this flag and flag timeout!!!
+    var updateBadge = function () {
+        Common.storageGet([Common.storageStrings.totalNotifications], function (response) {
+            var notifications = response[Common.storageStrings.totalNotifications];
+            Common.setBadge(notifications);
+        });
+    };
+
+    /**
+    * Listen for change message from another browser or popup.
+    */
+    Common.storageListener(function (changes) {
+        var storageChange = changes[Common.storageStrings.storageChange];
+
+        if (storageChange !== undefined && storageChange.instanceId !== Common.instanceId) {
+            // i need only the newest changes
+            storageChange = storageChange.newValue;
+        }
+        // i don't care for changes in this instance
+        else return;
+
+        if (storageChange.type === Common.eventsStrings.refreshStart) {
             freeToRefresh = false;
-            /////////// TODO: Don't refresh intervals!!!!
-            clearTimeout(timeoutInstance);
-            clearInterval(intervalInstance);
 
             // this timer is in case if the refresh is not completed (browser is closed, popup is closed, background script is stopped, etc)
             freeToRefreshTimeout = setTimeout(function () {
-                if (freeToRefresh === false) {
-                    freeToRefresh = true;
-                    setBackgroundInterval();
-                }
-            },
-                // 2 seconds more just in case (axios is asynchronous by default, and all calls should end before maxRequestTime)
-                Common.maxRequestTime + 2000);
+                var refreshEnd = {};
+                refreshEnd[Common.storageStrings.storageChange] = {
+                    type: Common.eventsStrings.refreshEnd,
+                    instanceId: Common.instanceId,
+                    time: Common.dateNowJSON()
+                };
+
+                // send message to all other browsers to close the popups
+                Common.storageSet(refreshEnd);
+
+                // this instance should be availble again for refreshing
+                freeToRefresh = true;
+            }, Common.maxRequestTime + Common.requestExtraTime);
         }
-        else if (request.type === 'background_refresh_end' && request.excludeId !== Common.instanceId) {
-            // update the refresh flag and timeout
+        else if (storageChange.type === Common.eventsStrings.refreshEnd) {
+            // clear the timeout
             clearTimeout(freeToRefreshTimeout);
-            /////////// TODO: Set to true this flag.
+            
+            // this instance should be availble again for refreshing
             freeToRefresh = true;
-            // clear this interval just in case (this is case if freeToRefreshTimeout was executed previously, which shouldn't be possible)
-            clearInterval(intervalInstance);
-            // and set a new background interval after the ajax calls
-            /////////// TODO: Don't set new inerval!!!!
-            setBackgroundInterval();
+
+            // update the badge
+            updateBadge();
         }
-        else if (request.type === 'changed_badge' && request.excludeId !== Common.instanceId) {
-            Common.storageGet([Common.storageStrings.totalNotifications], function (response) {
-                var notifications = response[Common.storageStrings.totalNotifications];
-                // update the badge for this browser
-                Common.setBadge(notifications, false);
-            });
+        else if (storageChange.type === Common.eventsStrings.addPackageStart) {
+            // this timer is in case if the adding package is not completed (browser is closed, popup is closed, background script is stopped, etc)
+            addPackageTimeout = setTimeout(function () {
+                var addPackageEnd = {};
+                addPackageEnd[Common.storageStrings.storageChange] = {
+                    type: Common.eventsStrings.addPackageEnd,
+                    instanceId: Common.instanceId,
+                    time: Common.dateNowJSON()
+                };
+
+                // send message to all other browsers to close the popups
+                Common.storageSet(addPackageEnd);
+            }, Common.maxRequestTime + Common.requestExtraTime);
+        }
+        else if (storageChange.type === Common.eventsStrings.addPackageEnd) {
+            // clear the timeout
+            clearTimeout(addPackageTimeout);
+            
+            // update the badge
+            updateBadge();
+        }
+        else if (storageChange.type === Common.eventsStrings.notificationsChange) {
+            // update the badge
+            updateBadge();
         }
     });
 
@@ -168,12 +197,20 @@
         documentUrlPatterns: ["http://*/*", "https://*/*"], // show the context menu only on valid websites
         onclick: function (info) {
             Common.storageGet([
-                Common.storageStrings.activeTrackingNumbers
+                Common.storageStrings.activeTrackingNumbers,
+                Common.storageStrings.storageChange
             ], function (response) {
                 // format selection
                 var selectionText = info.selectionText;
                 var formatedSelectionText = selectionText.toUpperCase().replace(/\W/g, '');
                 var activeTrackingNumbers = response[Common.storageStrings.activeTrackingNumbers];
+
+                // check the storage for changes
+                var storageChange = changes[Common.storageStrings.storageChange];
+                if (storageChange !== undefined) {
+                    // i need only the newest changes
+                    storageChange = storageChange.newValue;
+                }
 
                 if (formatedSelectionText.length != selectionText.length ||
                     formatedSelectionText.length < 8 ||
@@ -183,35 +220,29 @@
                         code: "alert('Селектираниот текст не е валиден број на пратка.')"
                     });
                 }
-                else if (addedPackagesTrackingNumbers.indexOf(formatedSelectionText) !== -1 ||
-                    activeTrackingNumbers.indexOf(formatedSelectionText) !== -1) {
+                else if (activeTrackingNumbers.indexOf(formatedSelectionText) !== -1) {
                     // show alert because tracking number exist
                     chrome.tabs.executeScript({
                         code: "alert('Пратката постои.')"
                     });
                 }
-                else {
-                    /* TODO:
-                    * and prevent the user from adding multiple packages from the background, 
-                    * should wait for the first package to be added and after that, he could add another one)
-                    * if a package is in process of adding, show an alert to notify user to wait several seconds
-                    */
-                    // update flag for adding
-                    // TODO: remove this logic!!! only one package in time can be added
-                    addedPackagesTrackingNumbers.push(formatedSelectionText);
-
-                    // add the tracking number
-                    Common.addNewPackage(formatedSelectionText, "", true, function () {
-                        // delete this tracking number from the flag
-                        var indexToDelete = addedPackagesTrackingNumbers.indexOf(formatedSelectionText);
-                        addedPackagesTrackingNumbers.splice(indexToDelete, 1);
-
-                        // send message to popups to notify them about adding of new package
-                        chrome.runtime.sendMessage({
-                            type: 'added_new_package',
-                            excludeId: Common.instanceId
-                        });
+                else if (storageChange !== undefined &&
+                    storageChange.newValue.type === Common.eventsStrings.addPackageStart) {
+                    // show alert because in this moment some tracking number is adding
+                    chrome.tabs.executeScript({
+                        code: "alert('Во моментов се додава пратка, почекајте неколку секунди.')"
                     });
+                }
+                else if (storageChange !== undefined &&
+                    storageChange.newValue.type === Common.eventsStrings.refreshStart) {
+                    // show alert because in this moment the active packages are refreshing
+                    chrome.tabs.executeScript({
+                        code: "alert('Во моментов се освежуваат пратките, почекајте неколку секунди.')"
+                    });
+                }
+                else {
+                    // add the tracking number
+                    Common.addNewPackage(formatedSelectionText, "", true);
                 }
             });
         }
