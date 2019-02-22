@@ -122,7 +122,9 @@
         if (request.type === 'background_refresh_start' && request.excludeId !== Common.instanceId) {
             // clear the timeouts and intervals for all other browsers before the ajax calls
             // and update the refresh flag
+            /////////// TODO: Only set this flag and flag timeout!!!
             freeToRefresh = false;
+            /////////// TODO: Don't refresh intervals!!!!
             clearTimeout(timeoutInstance);
             clearInterval(intervalInstance);
 
@@ -139,10 +141,12 @@
         else if (request.type === 'background_refresh_end' && request.excludeId !== Common.instanceId) {
             // update the refresh flag and timeout
             clearTimeout(freeToRefreshTimeout);
+            /////////// TODO: Set to true this flag.
             freeToRefresh = true;
             // clear this interval just in case (this is case if freeToRefreshTimeout was executed previously, which shouldn't be possible)
             clearInterval(intervalInstance);
             // and set a new background interval after the ajax calls
+            /////////// TODO: Don't set new inerval!!!!
             setBackgroundInterval();
         }
         else if (request.type === 'changed_badge' && request.excludeId !== Common.instanceId) {
@@ -187,7 +191,13 @@
                     });
                 }
                 else {
+                    /* TODO:
+                    * and prevent the user from adding multiple packages from the background, 
+                    * should wait for the first package to be added and after that, he could add another one)
+                    * if a package is in process of adding, show an alert to notify user to wait several seconds
+                    */
                     // update flag for adding
+                    // TODO: remove this logic!!! only one package in time can be added
                     addedPackagesTrackingNumbers.push(formatedSelectionText);
 
                     // add the tracking number

@@ -24,13 +24,14 @@ Common = (function () {
     };
 
     /**
-    * Storage changes strings.
+    * Storage changes strings. Events that need to be handle by the rest browsers and pcs.
     */
     var storageChangeStrings = {
         backgroundRefreshStart: "background_refresh_start",
         backgroundRefreshEnd: "background_refresh_end",
+        backgroundAddPackageStart: "background_add_package_start",
+        backgroundAddPackageEnd: "background_add_package_end",
         changedBadge: "changed_badge",
-        addedNewPackage: "added_new_package",
         closeAllPopups: "close_all_popups"
     };
 
@@ -50,8 +51,12 @@ Common = (function () {
     defaultStorageValues[storageStrings.maxArchivePackages] = 15;
     defaultStorageValues[storageStrings.storageChange] = {
         type: undefined,
-        excludeId: undefined,
-        time: undefined
+        instanceId: undefined,
+        // use time to know if this change is still active 
+        // if the browser was closed after backgroundRefreshStart or background_add_package_start
+        // when starting new istance, use time to compute if this change is too old
+        // and change it with type=undefined (but only for those 2 events)
+        time: undefined // string
     };
 
     /**
