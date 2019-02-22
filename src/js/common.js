@@ -35,7 +35,7 @@ Common = (function () {
     * Conflict changes methods: removeNotifications, addNewPackage(called from background),
     * refreshActiveTrackingNumbers(called from background)
     */
-    var storageChangeStrings = {
+    var eventsStrings = {
         backgroundRefreshStart: "background_refresh_start",
         backgroundRefreshEnd: "background_refresh_end", // after this event, update the badge (don't invoke notificationsChange notification)
         backgroundAddPackageStart: "background_add_package_start",
@@ -287,6 +287,28 @@ Common = (function () {
     var storageRemove = function (keys, callback) {
         chrome.storage.sync.remove(keys, callback);
     };
+
+    /*
+    Usage example
+        chrome.storage.onChanged.addListener(function(changes, namespace) {
+        for (var key in changes) {
+          var storageChange = changes[key];
+          console.log('Storage key "%s" in namespace "%s" changed. ' +
+                      'Old value was "%s", new value is "%s".',
+                      key,
+                      namespace,
+                      storageChange.oldValue,
+                      storageChange.newValue);
+        }
+      });
+    */
+
+    /**
+    * Listen from storage for change.
+    */
+    var storageListener = function (callback) {
+        chrome.storage.onChanged.addListener(callback);
+    }; 
 
     /**
     * Fill the storage with default values.
@@ -782,9 +804,10 @@ Common = (function () {
     return {
         instanceId: instanceId,
         storageStrings: storageStrings,
-        storageChangeStrings: storageChangeStrings,
+        eventsStrings: eventsStrings,
         maxRequestTime: maxRequestTime,
         formatDate: formatDate,
+        dateNowJSON: dateNowJSON,
         formatNoticeText: formatNoticeText,
         formatPackageData: formatPackageData,
         getStatusOfTrackingData: getStatusOfTrackingData,
@@ -793,6 +816,7 @@ Common = (function () {
         storageGet: storageGet,
         storageSet: storageSet,
         storageRemove: storageRemove,
+        storageListener: storageListener,
         setDefaultStorageValues: setDefaultStorageValues,
         setBadge: setBadge,
         showNotifications: showNotifications,

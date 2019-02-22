@@ -1,16 +1,23 @@
 (function () {
 
-    // send message to all other browsers to close the popups
-    chrome.runtime.sendMessage({
-        type: 'close_all_popups',
-        excludeId: Common.instanceId
-    });
+    var closeAllPopups = {};
+    closeAllPopups[Common.storageStrings.storageChange] = {
+        type: Common.eventsStrings.closeAllPopups,
+        instanceId: Common.instanceId,
+        time: Common.dateNowJSON()
+    };
 
-    // listen for message from another browser's popup
-    chrome.runtime.onMessage.addListener((request) => {
-        // close this popup if some other popup is opened
-        if (request.type === 'close_all_popups' && request.excludeId !== Common.instanceId) {
-            window.close();
+    // send message to all other browsers to close the popups
+    Common.storageSet(closeAllPopups);
+
+     // listen for message from another browser's popup
+    Common.storageListener(function (changes) {
+        var storageChange = changes[Common.storageStrings.storageChange];
+        
+        if (storageChange !== undefined && 
+            storageChange.newValue.type === Common.eventsStrings.closeAllPopups &&
+            storageChange.newValue.instanceId !== Common.instanceId) {
+                window.close();
         }
     });
 
