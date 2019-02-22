@@ -8,9 +8,9 @@
 
     // listen for change message from another browser's popup
     Common.storageListener(function (changes) {
-        var storageChange = changes[Common.storageStrings.closeAllPopups];
+        var popupChange = changes[Common.storageStrings.closeAllPopups];
 
-        if (storageChange !== undefined && storageChange.newValue !== Common.instanceId) {
+        if (popupChange !== undefined && popupChange.newValue !== Common.instanceId) {
             // close this popup if new is open
             window.close();
         }
