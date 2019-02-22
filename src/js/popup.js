@@ -177,6 +177,7 @@ new Vue({
             // listen for message from browser's background or this popup
             Common.storageListener(function (changes) {
                 var storageChange = changes[Common.storageStrings.storageChange];
+                var activePackagesChange = changes[Common.storageStrings.activeTrackingNumbers];
 
                 if (storageChange !== undefined && storageChange.newValue.instanceId !== Common.instanceId) {
                     // i need only the newest changes
@@ -188,9 +189,15 @@ new Vue({
                         MaterializeComponents.mainSpinner.style.display = "block";
                     }
                     else if (storageChange.type === Common.eventsStrings.refreshEnd) {
+                        var message = "Освежувањето е прекинато";
+                        if (activePackagesChange !== undefined) {
+                            // check if the adding was completed
+                            message = "Пратките се автоматски освежени";
+                        }
+
                         // refresh popup data if the background data is refreshed in another browser
                         // the main spinner is removed in this method
-                        thisApp.getAllDataFromBackground("Пратките се автоматски освежени!");
+                        thisApp.getAllDataFromBackground(message);
                     }
                     else if (storageChange.type === Common.eventsStrings.addPackageStart) {
                         thisApp.mainSpinnerDescription = "СЕ ДОДАВА НОВА ПРАТКА";
@@ -198,9 +205,15 @@ new Vue({
                         MaterializeComponents.mainSpinner.style.display = "block";
                     }
                     else if (storageChange.type === Common.eventsStrings.addPackageEnd) {
+                        var message = "Додавањето е прекинато";
+                        if (activePackagesChange !== undefined) {
+                            // check if the adding was completed
+                            message = "Додадена е нова пратка";
+                        }
+
                         // refresh the popup data if a new package is added in the background
                         // the main spinner is removed in this method
-                        thisApp.getAllDataFromBackground("Додадена е нова пратка!");
+                        thisApp.getAllDataFromBackground(message);
                     }
                 }
             });
