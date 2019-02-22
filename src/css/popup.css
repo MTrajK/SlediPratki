@@ -160,6 +160,15 @@ html, body {
     left: calc(50% - 32px);
 }
 
+#main_spinner_desc {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    font-size: 17px;
+    color: #fbc02d;
+    top: calc(50% + 140px);
+}
+
 .spinner-yellow-only {
     border-color: #fbc02d;
 }

@@ -68,6 +68,7 @@ new Vue({
             maxActivePackages: undefined,
             maxArchivePackages: undefined
         },
+        mainSpinnerDescription: "",
         activeModal: undefined,     // 4 types: "add", "action", "refresh", "edit"
         allTrackingNumbers: [],
         activePackages: [],
@@ -154,11 +155,24 @@ new Vue({
             // main spinner
             MaterializeComponents.mainSpinner = this.$el.querySelector("#main_spinner");
 
-            // FOR TESTING PURPOSE UNCOMMENT THIS
-            // setTimeout(this.getAllDataFromBackground, 2000);
+            Common.storageGet([
+                Common.storageStrings.storageChange
+            ], function (response) {
+                // check if there is some proccess in the backround
+                var storageChange = response[Common.storageStrings.storageChange];
 
-            // get all data from background
-            this.getAllDataFromBackground();    // comment this in testing mode
+                if (storageChange !== undefined) {
+                    if (storageChange.type === Common.eventsStrings.refreshStart) {
+                        thisApp.mainSpinnerDescription = "СЕ ОСВЕЖУВААТ ПРАТКИТЕ";
+                    }
+                    else if (storageChange.type === Common.eventsStrings.addPackageStart) {
+                        thisApp.mainSpinnerDescription = "СЕ ДОДАВА НОВА ПРАТКА";
+                    }
+                }
+
+                // get all data from background
+                thisApp.getAllDataFromBackground();
+            });
 
             // listen for message from browser's background or this popup
             Common.storageListener(function (changes) {
@@ -169,6 +183,7 @@ new Vue({
                     storageChange = storageChange.newValue;
 
                     if (storageChange.type === Common.eventsStrings.refreshStart) {
+                        thisApp.mainSpinnerDescription = "СЕ ОСВЕЖУВААТ ПРАТКИТЕ";
                         // add main spinner
                         MaterializeComponents.mainSpinner.style.display = "block";
                     }
@@ -178,6 +193,7 @@ new Vue({
                         thisApp.getAllDataFromBackground("Пратките се автоматски освежени!");
                     }
                     else if (storageChange.type === Common.eventsStrings.addPackageStart) {
+                        thisApp.mainSpinnerDescription = "СЕ ДОДАВА НОВА ПРАТКА";
                         // add main spinner
                         MaterializeComponents.mainSpinner.style.display = "block";
                     }
@@ -332,13 +348,13 @@ new Vue({
                 // update the refresh interval select manually
                 thisApp.updateRefreshIntervalSelect();
 
-                // check if here is for some proccess in the backround
+                // check if there is some proccess in the backround
                 var storageChange = response[Common.storageStrings.storageChange];
 
                 // remove the main spiner after loading the whole info
                 if (storageChange !== undefined &&
                     storageChange.type === Common.eventsStrings.refreshStart ||
-                    storageChange.type === Common.eventsStrings.addPackageStart) {    
+                    storageChange.type === Common.eventsStrings.addPackageStart) {
                     var lastChange = Common.dateDiff(storageChange.time, Common.dateNowJSON());
 
                     // if there is an active process in the background, check if it happened a long time ago
