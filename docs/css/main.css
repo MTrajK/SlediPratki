@@ -3,6 +3,10 @@
     font-family: Roboto;
 }
 
+body {
+    background-color: #fafafa;
+}
+
 .brand-logo {
     width: 44px;
     height: 44px;
@@ -32,13 +36,64 @@ nav ul a:focus, nav ul a:focus.active {
     background-color: #fffde7;
 }
 
-.content {
-
+.parallax-container {
+    min-height: 500px;
+    height: 500px;
 }
 
-@media only screen and (max-width: 992px) {
-    .content {
+.carousel {
+    margin: 90px 0;
+    height: 350px;
+}
 
+.carousel .carousel-item {
+    width: 560px;
+    height: 350px;
+    cursor: pointer;
+}
+
+.section .row {
+    margin-bottom: 0;
+}
+
+.page-footer {
+    padding-top: 0;
+    -webkit-box-shadow: 0 -4px 5px 0 rgba(0, 0, 0, 0.14), 0 -1px 10px 0 rgba(0, 0, 0, 0.12), 0 -2px 4px -1px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 -4px 5px 0 rgba(0, 0, 0, 0.14), 0 -1px 10px 0 rgba(0, 0, 0, 0.12), 0 -2px 4px -1px rgba(0, 0, 0, 0.3);
+}
+
+.footer-text {
+    color: #50565d;
+}
+
+.footer-link {
+    color: #fbc02d;
+    font-weight: bold;
+}
+
+.page-footer .row {
+    margin-bottom: 0;
+}
+
+@media only screen and (max-width: 450px) {
+    .parallax-container {
+        min-height: 275px;
+        height: 275px;
+    }
+    
+    .parallax-img {
+        width: 720px;
+        height: 450px;
+    }
+
+    .carousel {
+        margin: 35px 0;
+        height: 150px;
+    }
+    
+    .carousel .carousel-item {
+        width: 240px;
+        height: 150px;
     }
 }
 
@@ -53,5 +108,90 @@ nav ul a:focus, nav ul a:focus.active {
         width: 40px;
         height: 40px;
         margin-top: 8px;
+    }
+}
+
+@media only screen and (min-width: 451px) and (max-width: 600px) {
+    .parallax-container {
+        min-height: 300px;
+        height: 300px;
+    }
+    
+    .parallax-img {
+        width: 880px;
+        height: 550px;
+    }
+
+    .carousel {
+        margin: 25px 0;
+        height: 250px;
+    }
+    
+    .carousel .carousel-item {
+        width: 320px;
+        height: 200px;
+    }
+}
+
+@media only screen and (min-width: 601px) and (max-width: 992px) {
+    .parallax-container {
+        min-height: 350px;
+        height: 350px;
+    }
+
+    .parallax-img {
+        width: 1000px;
+        height: 625px;
+    }
+
+    .carousel {
+        margin: 60px 0;
+        height: 250px;
+    }
+    
+    .carousel .carousel-item {
+        width: 400px;
+        height: 250px;
+    }
+}
+
+@media only screen and (min-width: 993px) and (max-width: 1440px) {
+    .parallax-container {
+        min-height: 400px;
+        height: 400px;
+    }
+
+    .parallax-img {
+        width: 1480px;
+        height: 925px;
+    }
+
+    .carousel {
+        margin: 80px 0;
+        height: 300px;
+    }
+    
+    .carousel .carousel-item {
+        width: 480px;
+        height: 300px;
+    }
+}
+
+@media only screen and (min-width: 1441px) and (max-width: 2000px) {
+    .parallax-container {
+        min-height: 450px;
+        height: 450px;
+    }
+    
+    .parallax-img {
+        width: 2040px;
+        height: 1275px;
+    }
+}
+
+@media only screen and (min-width: 2001px) and (max-width: 2561px) { 
+    .parallax-img {
+        width: 2600px;
+        height: 1625px;
     }
 }
