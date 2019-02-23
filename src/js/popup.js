@@ -366,8 +366,8 @@ new Vue({
 
                 // remove the main spiner after loading the whole info
                 if (storageChange !== undefined &&
-                    storageChange.type === Common.eventsStrings.refreshStart ||
-                    storageChange.type === Common.eventsStrings.addPackageStart) {
+                    (storageChange.type === Common.eventsStrings.refreshStart ||
+                    storageChange.type === Common.eventsStrings.addPackageStart)) {
                     var lastChange = Common.dateDiff(storageChange.time, Common.dateNowJSON());
 
                     // if there is an active process in the background, check if it happened a long time ago
