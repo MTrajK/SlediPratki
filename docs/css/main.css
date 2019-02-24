@@ -19,6 +19,8 @@ body.spinner-loading {
 
 nav ul a {
     color: #9e9e9e;
+    -webkit-transition: color .2s ease-out;
+    transition: color .2s ease-out;
 }
 
 nav ul a:hover, nav ul a.active {
@@ -62,6 +64,10 @@ nav ul a:focus, nav ul a:focus.active {
     width: 560px;
     height: 350px;
     cursor: pointer;
+}
+
+.carousel .carousel-item:active {
+    cursor: grab;
 }
 
 .add-my-padding {
