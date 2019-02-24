@@ -7,6 +7,10 @@ body {
     background-color: #fafafa;
 }
 
+body.spinner-loading {
+    overflow: hidden;
+}
+
 .brand-logo {
     width: 44px;
     height: 44px;
@@ -36,13 +40,21 @@ nav ul a:focus, nav ul a:focus.active {
     background-color: #fffde7;
 }
 
+.parallax-img {
+    filter: grayscale(60%);
+}
+
 .parallax-container {
     min-height: 500px;
     height: 500px;
 }
 
+.parallax-container .section {
+    width: 100%;
+}
+
 .carousel {
-    margin: 90px 0;
+    margin: 50px 0 90px;
     height: 350px;
 }
 
@@ -52,8 +64,20 @@ nav ul a:focus, nav ul a:focus.active {
     cursor: pointer;
 }
 
-.section .row {
-    margin-bottom: 0;
+.add-my-padding {
+    padding: 40px 0;
+}
+
+.settings-text {
+    color: #50565d;
+}
+
+.my-yellow {
+    color: #fbc02d;
+}
+
+.material-icons {
+    color: #fbc02d;
 }
 
 .page-footer {
@@ -63,10 +87,29 @@ nav ul a:focus, nav ul a:focus.active {
 }
 
 .footer-text {
+    font-size: 16px;
     color: #50565d;
 }
 
-.footer-link {
+.name-text {
+    color: #fbc02d;
+    margin-top: 0;
+}
+
+.install-button {
+    background-color: #fbc02d;
+    margin-top: 25px;
+}
+
+.install-button:hover {
+    background-color: #fcd470;
+}
+
+.install-button:focus {
+    background-color: #e0a104;
+}
+
+.yellow-link {
     color: #fbc02d;
     font-weight: bold;
 }
@@ -74,6 +117,67 @@ nav ul a:focus, nav ul a:focus.active {
 .page-footer .row {
     margin-bottom: 0;
 }
+
+.spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100%;
+    width: 100%;
+    background-color: white;
+    z-index: 1005;
+}
+
+.spinner {
+    position: fixed;
+    width: 96px;
+    height: 96px;
+    top: calc(50% - 48px);
+    left: calc(50% - 48px);
+}
+
+.spinner-logo {
+    position: fixed;
+    width: 64px;
+    height: 64px;
+    top: calc(50% - 32px);
+    left: calc(50% - 32px);
+}
+
+.spinner-yellow-only {
+    border-color: #fbc02d;
+}
+
+@media only screen and (max-width: 390px) {
+    .name-text {
+        font-size: 2.8rem;
+    }
+
+    .description-text {
+        font-size: 1.45rem;
+    }
+
+    .extension-text {
+        font-size: 1.85rem;
+    }
+}
+
+@media only screen and (min-width: 391px) and (max-width: 450px) {
+    .name-text {
+        font-size: 3.5rem;
+    }
+
+    .description-text {
+        font-size: 1.55rem;
+    }
+
+    .extension-text {
+        font-size: 1.95rem;
+    }
+}
+
 
 @media only screen and (max-width: 450px) {
     .parallax-container {
@@ -87,7 +191,7 @@ nav ul a:focus, nav ul a:focus.active {
     }
 
     .carousel {
-        margin: 35px 0;
+        margin: 25px 0 35px;
         height: 150px;
     }
     
@@ -112,6 +216,10 @@ nav ul a:focus, nav ul a:focus.active {
 }
 
 @media only screen and (min-width: 451px) and (max-width: 600px) {
+    .name-text {
+        font-size: 3.9rem;
+    }
+
     .parallax-container {
         min-height: 300px;
         height: 300px;
@@ -123,13 +231,17 @@ nav ul a:focus, nav ul a:focus.active {
     }
 
     .carousel {
-        margin: 25px 0;
+        margin: 35px 0 50px;
         height: 250px;
     }
     
     .carousel .carousel-item {
         width: 320px;
         height: 200px;
+    }
+
+    .extension-text {
+        font-size: 2.1rem;
     }
 }
 
@@ -145,7 +257,7 @@ nav ul a:focus, nav ul a:focus.active {
     }
 
     .carousel {
-        margin: 60px 0;
+        margin: 40px 0 60px;
         height: 250px;
     }
     
@@ -167,7 +279,7 @@ nav ul a:focus, nav ul a:focus.active {
     }
 
     .carousel {
-        margin: 80px 0;
+        margin: 50px 0 80px;
         height: 300px;
     }
     
@@ -187,11 +299,19 @@ nav ul a:focus, nav ul a:focus.active {
         width: 2040px;
         height: 1275px;
     }
+    
+    .add-my-padding {
+        padding: 70px 0;
+    }
 }
 
 @media only screen and (min-width: 2001px) and (max-width: 2561px) { 
     .parallax-img {
         width: 2600px;
         height: 1625px;
+    }
+    
+    .add-my-padding {
+        padding: 90px 0;
     }
 }

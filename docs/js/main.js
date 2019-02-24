@@ -1,12 +1,9 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // wait for the DOM to be created (maybe we don't need this tag https://thanpol.as/javascript/you-dont-need-dom-ready )
-    // define materialize and logic
-
     var parallax = document.querySelectorAll('.parallax');
-    var parallaxInstances = M.Parallax.init(parallax);
+    M.Parallax.init(parallax);
 
     var scrollspy = document.querySelectorAll('.scrollspy');
-    var scrollspyInstances = M.ScrollSpy.init(scrollspy);
+    M.ScrollSpy.init(scrollspy);
 
     var carousel = document.querySelectorAll('.carousel');
     var carouselInstance = M.Carousel.init(carousel);
@@ -21,7 +18,27 @@ document.addEventListener('DOMContentLoaded', function () {
     };
     var lastWidth = windowWidth();
 
-    // re-init crousel after changing the dimensions with css media querries
+    var sync = document.querySelector('#sync');
+    var notifications = document.querySelector('#notifications');
+    var packages = document.querySelector('#packages');
+
+    var updateHeight = function () {
+        // don't care about the last col - settings
+
+        var maxHeight = 0;
+        maxHeight = Math.max(maxHeight, Math.max(sync.offsetHeight, sync.clientHeight));
+        maxHeight = Math.max(maxHeight, Math.max(notifications.offsetHeight, notifications.clientHeight));
+        maxHeight = Math.max(maxHeight, Math.max(packages.offsetHeight, packages.clientHeight));
+
+        maxHeight = maxHeight + "px";
+
+        sync.style.height = maxHeight;
+        notifications.style.height = maxHeight;
+        packages.style.height = maxHeight;
+    }
+
+    updateHeight();
+
     window.onresize = function () {
         var currentWidth = windowWidth();
 
@@ -32,16 +49,23 @@ document.addEventListener('DOMContentLoaded', function () {
             (currentWidth > 992 && currentWidth <= 1440 && (lastWidth > 1440 || lastWidth <= 992)) ||
             (currentWidth > 1440 && lastWidth <= 1440)) {
             if (carouselInstance !== undefined) {
+                // re-init crousel after changing the dimensions with css media querries
                 carouselInstance = M.Carousel.init(carousel);
             }
         }
 
         lastWidth = currentWidth;
+
+        // update columns height
+        updateHeight();
     };
 });
 
 window.addEventListener("load", function (event) {
-    // wait for all pictures to be loaded
-    // stop the main spinner
-
+    // remove the spinner after all pictures are loaded
+    var spinner = document.querySelector('#spinner');
+    spinner.style.display = "none";
+    
+    var body = document.querySelector('body');
+    body.classList.remove("spinner-loading");
 });

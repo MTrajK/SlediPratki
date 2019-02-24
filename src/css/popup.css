@@ -56,15 +56,39 @@ html, body {
 }
 
 .my-red {
-    background-color: #ff5252 !important;
+    background-color: #ff5252;
+}
+
+.my-red:hover {
+    background-color: #ff9696;
+}
+
+.my-btn-flat:hover {
+    color: #808080;
+}
+
+.my-btn-flat:focus {
+    color: #0a0a0a;
+}
+
+.my-red:focus {
+    background-color: #ff0e0e;
 }
 
 .my-yellow-button {
-    background-color: #fbc02d !important;
+    background-color: #fbc02d;
     padding: 0px 8px;
     margin-left: 7px;
     height: 30px;
     line-height: 30px;
+}
+
+.my-yellow-button:hover {
+    background-color: #fcd470;
+}
+
+.my-yellow-button:focus {
+    background-color: #e0a104;
 }
 
 .name-text {
