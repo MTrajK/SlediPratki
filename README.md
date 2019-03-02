@@ -18,6 +18,8 @@ This extension is available in Chrome Web Store, you can install it from [this l
 - Two types of packages: active packages, archived packages
 - It's possible to adjust the behavior of the extension
 
+![App workflow](https://raw.githubusercontent.com/MTrajK/SlediPratki/master/images/app_workflow.gif "App workflow")
+
 ## Repo structure
 
 - [dist](dist) - all releases of the extension
