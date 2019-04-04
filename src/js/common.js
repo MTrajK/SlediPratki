@@ -1,4 +1,4 @@
-Common = (function () {
+(function (global) {
 
     var appVersion = chrome.runtime.getManifest().version;
     var postUrl = "https://www.posta.com.mk/tnt/api/query?id=";
@@ -802,7 +802,7 @@ Common = (function () {
         });
     };
 
-    return {
+    global.Common =  {
         instanceId: instanceId,
         storageStrings: storageStrings,
         eventsStrings: eventsStrings,
@@ -835,4 +835,4 @@ Common = (function () {
         removeNotifications: removeNotifications,
         getAllData: getAllData
     };
-})();
+}(this));
