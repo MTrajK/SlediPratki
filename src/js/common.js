@@ -51,7 +51,7 @@
     defaultStorageValues[storageStrings.activeTrackingNumbers] = [];
     defaultStorageValues[storageStrings.archiveTrackingNumbers] = [];
     defaultStorageValues[storageStrings.autoRefresh] = true;
-    defaultStorageValues[storageStrings.refreshInterval] = 4;
+    defaultStorageValues[storageStrings.refreshInterval] = 24;
     defaultStorageValues[storageStrings.enableNotifications] = true;
     defaultStorageValues[storageStrings.maxActivePackages] = 20;
     defaultStorageValues[storageStrings.maxArchivePackages] = 15;
@@ -161,6 +161,14 @@
                 return "Пристигната во наизменична пошта";
             case "Za isporaka na {alter":
                 return "За испорака на шалтер";
+            case "Za Dost./ Ispor.":
+                return "За достава";
+            case "Vtora dostava":
+                return "Втора достава";
+            case "Pratkata se prima od Ispra}a~":
+                return "Пратката се прима";
+            case "Ne pobaral":
+                return "Не побарал";
             default:
                 return notice;
         }
@@ -398,6 +406,11 @@
 
                                 // new notifications for this tracking number
                                 var newLocalNotifications = newTrackingData.length - updatedResult.trackingData.length;
+                                var dataN = Math.min(newTrackingData.length, updatedResult.trackingData.length);
+                                // compare each row from old vs new results
+                                for (var dataI = 0; dataI < dataN; dataI++) 
+                                    if (newTrackingData[dataI].notice !== updatedResult.trackingData[dataI].notice)
+                                        newLocalNotifications++;
 
                                 // if there is a new result and something new in that result
                                 // then update everything except the trackingNumber and packageDescription for this tracking number
@@ -742,6 +755,7 @@
     */
     var getAllData = function (callback) {
         storageGet([
+            storageStrings.version,
             storageStrings.activeTrackingNumbers,
             storageStrings.archiveTrackingNumbers,
             storageStrings.autoRefresh,
@@ -751,6 +765,16 @@
             storageStrings.maxArchivePackages,
             storageStrings.storageChange
         ], function (response) {
+            if (response[storageStrings.version] === undefined) {
+                // This will be true if the app icon is pressed immediately after oppening the browser
+                // because there is 10 seconds sync waiting time in the background.js
+                setTimeout(function () {
+                    // try after one second again
+                    getAllData(callback);
+                }, 1000);
+                return;
+            }
+
             // tracking numbers properties
             var activeTrackingNumbers = response[storageStrings.activeTrackingNumbers];
             var archiveTrackingNumbers = response[storageStrings.archiveTrackingNumbers];

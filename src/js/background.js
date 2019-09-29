@@ -2,6 +2,8 @@
 
     // 60 min * 60 sec * 1000 milliseconds = 3.600.000
     var oneHourMillis = 3600000;
+    var halfDay = oneHourMillis * 12;
+    var syncWait = 10000;
 
     // refresh flag (to solve problems with sync with the rest browser's backgrounds, some kind of concurrency problem)
     var freeToRefresh = true;
@@ -52,11 +54,11 @@
     };
 
     /**
-    * 4. Checks if it's time for start of background interval.
+    * 4. Checks if it's time for start of background interval. (check every half day, minimum refresh interval is 12 hours)
     */
     var setBackgroundInterval = function () {
         getStorageAndRefreshData();
-        setInterval(getStorageAndRefreshData, oneHourMillis);
+        setInterval(getStorageAndRefreshData, halfDay);
     };
 
     /**
@@ -74,8 +76,8 @@
             // if the last refresh is too old, refresh now and set an interval
             setBackgroundInterval();
         } else {
-            // if the last refresh is new, set timeout for the rest miliseconds
-            setTimeout(setBackgroundInterval, diffRefresh - refreshInterval);
+            // if the last refresh is new, set timeout for the rest miliseconds (to catch the next half day)
+            setTimeout(setBackgroundInterval, (refreshInterval - diffRefresh) % halfDay);
         }
     };
 
@@ -91,12 +93,15 @@
     };
 
     /**
-    * 1. Checks if the storage is empty. (if there is no version, the storage is empty)
+    * 1. Checks if the storage is empty. (if there is no version, the storage is empty), and check if refresh interval is less than 12 hours.
     */
-    var checkVersion = function (response) {
+    var checkVersionAndRefreshInterval = function (response) {
         if (response[Common.storageStrings.version] === undefined) {
             // fill the storage with default values and after that start the background
             Common.setDefaultStorageValues(getRefreshSettings);
+        } else if (response[Common.storageStrings.refreshInterval] < 12) {
+            // update the refresh interval
+            Common.changeRefreshInterval(12, getRefreshSettings);
         } else {
             // start the background
             getRefreshSettings();
@@ -104,9 +109,11 @@
     };
 
     /**
-    * 0. Start the background scripts.
+    * 0. Start the background scripts. (but first wait for 10 seconds, give time to the storage for syncing)
     */
-    Common.storageGet([Common.storageStrings.version], checkVersion);
+    setTimeout(function () {
+        Common.storageGet([Common.storageStrings.version], checkVersionAndRefreshInterval);
+    }, syncWait);
 
     /**
     *  Update the badge for this browser.
