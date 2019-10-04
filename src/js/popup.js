@@ -141,13 +141,9 @@ new Vue({
                         MaterializeComponents.mainSpinner.style.display = "block";
                     }
                     else if (storageChange.type === Common.eventsStrings.refreshEnd) {
-                        var message = "Освежувањето е прекинато";
-                        if (activePackagesChange !== undefined) {
-                            // check if the adding was completed
-                            message = "Пратките се автоматски освежени";
-                        }
+                        var message = "Пратките се автоматски освежени";
 
-                        // refresh popup data if the background data is refreshed in another browser
+                        // refresh popup data if the background data is refreshed in background or another browser
                         // the main spinner is removed in this method
                         thisApp.getAllDataFromBackground(message);
                     }

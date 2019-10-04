@@ -363,10 +363,16 @@
                     return;
                 }
 
-                var result = {};
+                // those results will be saved into the storage
+                var setResult = {};
                 // save the last refresh before calling calling the api 
                 // (in this way, this browser/background will have priority in the next refreshing scheduling)
-                result[storageStrings.lastRefresh] = dateNowJSON();
+                setResult[storageStrings.lastRefresh] = dateNowJSON();
+
+                // those results will be returned into popup.js
+                var callbackResult = {};
+                // send a list of all active tracking numbers into the callback function
+                callbackResult[storageStrings.activeTrackingNumbers] = activeTrackingNumbers;
 
                 var activeTrackingNumbersStorageStrings = [];
 
@@ -403,6 +409,9 @@
                                 // get the new result for this tracking number
                                 var newTrackingData = activeTrackingNumbersNewTrackingData[activeTrackingNumbers[j]];
 
+                                // save this result for the callback function
+                                callbackResult[activeTrackingNumbersStorageStrings[j]] = updatedResult;
+
                                 // if there is a response from the server
                                 if (newTrackingData !== "error") {
                                     // new notifications for this tracking number
@@ -410,7 +419,7 @@
                                     var dataN = Math.min(newTrackingData.length, updatedResult.trackingData.length);
                                     // save the number of old notifications
                                     var oldLocalNotifications = updatedResult.notifications;
-                                    
+
                                     // compare each row from old vs new results
                                     for (var dataI = 0; dataI < dataN; dataI++) 
                                         if (newTrackingData[dataI].notice !== updatedResult.trackingData[dataI].notice) {
@@ -433,9 +442,10 @@
                                         // save the new tracking data
                                         updatedResult.trackingData = newTrackingData;
 
-                                        // save the updated result (save only if there is something new)
-                                        // this will fix the notification bug
-                                        result[activeTrackingNumbersStorageStrings[j]] = updatedResult;
+                                        // save the updated result into the storage array (save only if there is something new, this will fix the notification bug)
+                                        setResult[activeTrackingNumbersStorageStrings[j]] = updatedResult;
+                                        // and save the updated result to override the old result
+                                        callbackResult[activeTrackingNumbersStorageStrings[j]] = updatedResult;
                                     }
                                 } else {
                                     // get the old notifications for trackingNumber 
@@ -446,7 +456,7 @@
                             var allNotifications = oldNotifications + newNotifications;
 
                             // save the number of total notifications
-                            result[storageStrings.totalNotifications] = allNotifications;
+                            setResult[storageStrings.totalNotifications] = allNotifications;
 
                             // update the badge
                             setBadge(allNotifications);
@@ -458,20 +468,18 @@
                             }
 
                             // send change message for refresh end
-                            result[storageStrings.storageChange] = {
+                            setResult[storageStrings.storageChange] = {
                                 type: eventsStrings.refreshEnd,
                                 instanceId: instanceId,
                                 time: dateNowJSON()
                             };
 
                             // save the new results in storage
-                            storageSet(result, function () {
+                            storageSet(setResult, function () {
 
-                                // return the new results if there is a callback method
+                                // return the old and new results if there is a callback method
                                 if (callback && (typeof callback === "function")) {
-                                    // also send a list of all active tracking numbers
-                                    result[storageStrings.activeTrackingNumbers] = activeTrackingNumbers;
-                                    callback(result);
+                                    callback(callbackResult);
                                 }
 
                             });
