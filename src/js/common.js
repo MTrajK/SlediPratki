@@ -350,13 +350,11 @@
         storageSet(refreshStart, function () {
             storageGet([
                 storageStrings.activeTrackingNumbers,
-                storageStrings.enableNotifications,
-                storageStrings.totalNotifications
+                storageStrings.enableNotifications
             ], function (response) {
                 // data from storage
                 var activeTrackingNumbers = response[storageStrings.activeTrackingNumbers];
                 var enableNotifications = response[storageStrings.enableNotifications];
-                var totalNotifications = response[storageStrings.totalNotifications];
                 var totalActiveTrackingNumbers = activeTrackingNumbers.length;
 
                 // nothing to refresh if there are 0 active tracking numbers
@@ -390,8 +388,9 @@
                         // if all active tracking numbers are visited, then this is the last response from api, compare old vs new trackingData
                         if (visitedActiveTrackingNumbers === totalActiveTrackingNumbers) {
 
-                            // count the difference in the new results
+                            // count the difference in the new and old results and update old notifications
                             var newNotifications = 0;
+                            var oldNotifications = 0;
 
                             // compare the new active tracking numbers with the old ones and save results
                             for (var j = 0; j < totalActiveTrackingNumbers; j++) {
@@ -404,34 +403,47 @@
                                 // get the new result for this tracking number
                                 var newTrackingData = activeTrackingNumbersNewTrackingData[activeTrackingNumbers[j]];
 
-                                // new notifications for this tracking number
-                                var newLocalNotifications = newTrackingData.length - updatedResult.trackingData.length;
-                                var dataN = Math.min(newTrackingData.length, updatedResult.trackingData.length);
-                                // compare each row from old vs new results
-                                for (var dataI = 0; dataI < dataN; dataI++) 
-                                    if (newTrackingData[dataI].notice !== updatedResult.trackingData[dataI].notice)
-                                        newLocalNotifications++;
+                                // if there is a response from the server
+                                if (newTrackingData !== "error") {
+                                    // new notifications for this tracking number
+                                    var newLocalNotifications = newTrackingData.length - updatedResult.trackingData.length;
+                                    var dataN = Math.min(newTrackingData.length, updatedResult.trackingData.length);
+                                    // save the number of old notifications
+                                    var oldLocalNotifications = updatedResult.notifications;
+                                    
+                                    // compare each row from old vs new results
+                                    for (var dataI = 0; dataI < dataN; dataI++) 
+                                        if (newTrackingData[dataI].notice !== updatedResult.trackingData[dataI].notice) {
+                                            newLocalNotifications++;
+                                            oldLocalNotifications--;
+                                        }
 
-                                // if there is a new result and something new in that result
-                                // then update everything except the trackingNumber and packageDescription for this tracking number
-                                // so update only: status, notifications, trackingData (lastRefresh is previously updated)
-                                if (newTrackingData !== "error" && newLocalNotifications > 0) {
-                                    // update the status
-                                    updatedResult.status = getStatusOfTrackingData(newTrackingData);
+                                    // if there is a new result and something new in that result
+                                    // then update everything except the trackingNumber and packageDescription for this tracking number
+                                    // so update only: status, notifications, trackingData (lastRefresh is previously updated)
+                                    if (newLocalNotifications > 0) {
+                                        // update the status
+                                        updatedResult.status = getStatusOfTrackingData(newTrackingData);
 
-                                    // update notifications for this tracking number
-                                    newNotifications += newLocalNotifications;
-                                    updatedResult.notifications += newLocalNotifications;
+                                        // update notifications for this tracking number
+                                        newNotifications += newLocalNotifications;
+                                        oldNotifications += oldLocalNotifications;
+                                        updatedResult.notifications = oldLocalNotifications + newLocalNotifications;
 
-                                    // save the new tracking data
-                                    updatedResult.trackingData = newTrackingData;
+                                        // save the new tracking data
+                                        updatedResult.trackingData = newTrackingData;
+
+                                        // save the updated result (save only if there is something new)
+                                        // this will fix the notification bug
+                                        result[activeTrackingNumbersStorageStrings[j]] = updatedResult;
+                                    }
+                                } else {
+                                    // get the old notifications for trackingNumber 
+                                    oldNotifications += updatedResult.notifications;
                                 }
-
-                                // save the updated result
-                                result[activeTrackingNumbersStorageStrings[j]] = updatedResult;
                             }
 
-                            var allNotifications = totalNotifications + newNotifications;
+                            var allNotifications = oldNotifications + newNotifications;
 
                             // save the number of total notifications
                             result[storageStrings.totalNotifications] = allNotifications;
