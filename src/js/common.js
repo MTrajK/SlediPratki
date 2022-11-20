@@ -1,7 +1,7 @@
 (function (global) {
 
     var appVersion = chrome.runtime.getManifest().version;
-    var postUrl = "https://www.posta.com.mk/tnt/api/query?id=";
+    var postUrl = "https://www.posta.com.mk/api/api.php/shipment?code=";
     var maxRequestTime = 15000;     // 15 seconds max request (maybe this is too much)
     var requestExtraTime = 3000;    // extra time to wait after the request
     var months = ["Јануари", "Февруари", "Март", "Април", "Мај", "Јуни", "Јули", "Август", "Септември", "Октомври", "Ноември", "Декември"];
@@ -27,10 +27,10 @@
 
     /**
     * Storage changes strings. Only for events that need to be handle by the rest browsers and pcs.
-    * 
-    * No conflict changes methods: changeAutoRefresh, changeRefreshInterval, changeEnableNotifications, 
+    *
+    * No conflict changes methods: changeAutoRefresh, changeRefreshInterval, changeEnableNotifications,
     * moveArchiveToActive, moveActiveToArchive, changePackageDescription, deleteArchivePackage, deleteActivePackage
-    * 
+    *
     * Conflict changes methods: removeNotifications, addNewPackage, refreshActiveTrackingNumbers
     */
     var eventsStrings = {
@@ -84,8 +84,9 @@
 
     /**
     * Format a Date() object to string: "DD Month YYY, HH:MM:SS".
+    * Used for dates generated in the app.
     */
-    var formatDate = function (date) {
+    var formatDateTime = function (date) {
         if (typeof date === "string") {
             date = new Date(date);
         }
@@ -99,6 +100,24 @@
     };
 
     /**
+    * Format a Date() object to string: "DD Month YYY".
+    * Used for API dates.
+    * Works with the new and old posta.com.mk date formats:
+    * - new: "DATA_PERPUNIMIT": "09-NOV-22"
+    * - old: <Date>11/5/2018, 1:33:10 PM</Date>
+    * Note: The new posta.com.mk date format is missing time info, because of that show only the date instead showing 00:00:00 always for the time.
+    */
+    var formatDate = function (date) {
+        if (typeof date === "string") {
+            date = new Date(date);
+        }
+
+        return addZero(date.getDate()) + " "
+            + months[date.getMonth()] + " "
+            + date.getFullYear();
+    };
+
+    /**
     * Get the current date in string format.
     */
     var dateNowJSON = function () {
@@ -106,41 +125,82 @@
     };
 
     /**
-    * Structure of posta.com.mk XML response
+    * Returns an empty string if a value is null.
+    */
+    var getStringValue = function (value) {
+        return (value == null) ? "" : value;
+    };
+
+    /**
+    * Structure of new posta.com.mk JSON response
+    * [
+    *    {
+    *        "NR_R_DERGESES": "UB589844475LV",
+    *        "EMRI": "Skopje IO",
+    *        "POSTA_FILLIM": "1003",
+    *        "POSTA_FUND": "1050",
+    *        "DATA_PERPUNIMIT": "08-NOV-22",
+    *        "BRZAKL": "176",
+    *        "LLOJIZAKL": "R",
+    *        "BROTPR": "1",
+    *        "DATUM_DOSTAVUVAWE": null,
+    *        "ZABELESKA": "Vo Posta"
+    *    },
+    *    {
+    *        "NR_R_DERGESES": "UB589844475LV",
+    *        "EMRI": "Skopje - Dra~evo",
+    *        "POSTA_FILLIM": "1050",
+    *        "POSTA_FUND": "Dostava",
+    *        "DATA_PERPUNIMIT": "09-NOV-22",
+    *        "BRZAKL": "21",
+    *        "LLOJIZAKL": null,
+    *        "BROTPR": null,
+    *        "DATUM_DOSTAVUVAWE": "09-NOV-22",
+    *        "ZABELESKA": "Ispora~ana"
+    *    }
+    * ]
+    * Old XML:
     *    <ArrayOfTrackingData>
     *        <TrackingData>
-	*	        <ID>UN232716818CN</ID>
-	*	        <Begining>Skopje IO 1003</Begining>
-	*	        <End>1020</End>
-	*	        <Date>11/5/2018, 1:33:10 PM</Date>
-	*	        <Notice>Vo Posta</Notice>
-	*        </TrackingData>
+    *           <ID>UN232716818CN</ID>
+    *           <Begining>Skopje IO 1003</Begining>
+    *           <End>1020</End>
+    *           <Date>11/5/2018, 1:33:10 PM</Date>
+    *           <Notice>Vo Posta</Notice>
+    *        </TrackingData>
     *    </ArrayOfTrackingData>
     */
-    var convertXMLToList = function (xmlResult) {
-        // if there are no results for some tracking number then the service will return <ArrayOfTrackingData></ArrayOfTrackingData>
-        // and the result will stay empty
+    var convertApiResultToList = function (jsonResult) {
         var result = [];
+        var parsedResult = [];
+        var length = 0;
 
-        var parser = new DOMParser();
-        var xmlDoc = parser.parseFromString(xmlResult, "text/xml");
+        try {
+            parsedResult = JSON.parse(jsonResult);
 
-        var length = xmlDoc.getElementsByTagName("TrackingData").length;
+            if (Array.isArray(parsedResult)) {
+                length = parsedResult.length;
+            }
+        }
+        catch (e) { }
 
-        // look only for Begining, End, Date and Notice tags (those are used by app)
-        // i'm using beginning (with two n) in the code
+        // the old xml API had these 4 tags: Begining, End, Date, Notice
+        // the new json API has these keys:
+        // - EMRI, POSTA_FILLIM (this combination is equal to the old Begining tag),
+        // - POSTA_FUND (equal to the old End tag)
+        // - DATA_PERPUNIMIT (equal to the Date tag)
+        // - ZABELESKA (equal to the old Notice tag)
         for (var i = 0; i < length; i++) {
-            var beginning = xmlDoc.getElementsByTagName("Begining")[i].childNodes[0];
-            var end = xmlDoc.getElementsByTagName("End")[i].childNodes[0];
-            var date = xmlDoc.getElementsByTagName("Date")[i].childNodes[0];
-            var notice = xmlDoc.getElementsByTagName("Notice")[i].childNodes[0];
+            var beginning = getStringValue(parsedResult[i]["EMRI"]) + " " + getStringValue(parsedResult[i]["POSTA_FILLIM"]);
+            var end = getStringValue(parsedResult[i]["POSTA_FUND"]);
+            var date = getStringValue(parsedResult[i]["DATA_PERPUNIMIT"]);
+            var notice = getStringValue(parsedResult[i]["ZABELESKA"]);
 
-            // search for self-closing tag
             result.push({
-                beginning: (beginning === undefined) ? "" : beginning.nodeValue,
-                end: (end === undefined) ? "" : end.nodeValue,
-                date: (date === undefined) ? "" : date.nodeValue,
-                notice: (notice === undefined) ? "" : notice.nodeValue
+                beginning: beginning,
+                end: end,
+                date: date,
+                notice: notice
             });
         }
 
@@ -149,7 +209,7 @@
     };
 
     /**
-    * Format the notice text from posta.com.mk response. 
+    * Format the notice text from posta.com.mk response.
     */
     var formatNoticeText = function (notice) {
         switch (notice) {
@@ -180,7 +240,7 @@
     *    {
     *        trackingNumber: string,
     *        packageDescription: string,
-    *        lastRefresh: formatDate(string or Date),
+    *        lastRefresh: formatDateTime(string or Date),
     *        status: string,
     *        notifications: integer,
     *        trackingData: [{
@@ -196,7 +256,7 @@
 
         result.trackingNumber = packageData.trackingNumber;
         result.packageDescription = packageData.packageDescription;
-        result.lastRefresh = formatDate(packageData.lastRefresh);
+        result.lastRefresh = formatDateTime(packageData.lastRefresh);
         result.status = packageData.status;
         result.notifications = packageData.notifications;
         result.trackingData = [];
@@ -217,7 +277,7 @@
 
     /**
     * Get status of tracking data (read the notice from the last result).
-    * 3 possible statuses: 
+    * 3 possible statuses:
     * - "remove_circle": no results
     * - "local_shipping": package in transit
     * - "where_to_vote": package recived
@@ -257,14 +317,14 @@
             url: postUrl + trackingNumber,
             timeout: maxRequestTime
         }).then(function (response) {
-            var convertedResponse = convertXMLToList(response.data);
+            var convertedResponse = convertApiResultToList(response.data);
             success(convertedResponse, trackingNumber);
         }).catch(function (error) {
             fail("error", trackingNumber);
         });
     };
 
-    /* 
+    /*
         All extensions have personal chrome.storage.sync,
         you can't access some other extensions storage!
         When an extension is deleted, the storage is also deleted!
@@ -365,7 +425,7 @@
 
                 // those results will be saved into the storage
                 var setResult = {};
-                // save the last refresh before calling calling the api 
+                // save the last refresh before calling calling the api
                 // (in this way, this browser/background will have priority in the next refreshing scheduling)
                 setResult[storageStrings.lastRefresh] = dateNowJSON();
 
@@ -421,7 +481,7 @@
                                     var oldLocalNotifications = updatedResult.notifications;
 
                                     // compare each row from old vs new results
-                                    for (var dataI = 0; dataI < dataN; dataI++) 
+                                    for (var dataI = 0; dataI < dataN; dataI++)
                                         if (newTrackingData[dataI].notice !== updatedResult.trackingData[dataI].notice) {
                                             newLocalNotifications++;
                                             oldLocalNotifications--;
@@ -448,7 +508,7 @@
                                         callbackResult[activeTrackingNumbersStorageStrings[j]] = updatedResult;
                                     }
                                 } else {
-                                    // get the old notifications for trackingNumber 
+                                    // get the old notifications for trackingNumber
                                     oldNotifications += updatedResult.notifications;
                                 }
                             }
@@ -575,7 +635,7 @@
             time: dateNowJSON()
         };
 
-        storageSet(addPackageStart, function () { 
+        storageSet(addPackageStart, function () {
             // call the api
             getPackage(trackingNumber, ajaxCallback, ajaxCallback);
         });
@@ -653,7 +713,7 @@
     };
 
     /**
-    * Move an active package to archive. 
+    * Move an active package to archive.
     */
     var moveActiveToArchive = function (trackingNumber, callback) {
         storageGet([
@@ -680,7 +740,7 @@
     };
 
     /**
-    * Move an archived package to active. 
+    * Move an archived package to active.
     */
     var moveArchiveToActive = function (trackingNumber, callback) {
         storageGet([
@@ -707,7 +767,7 @@
     };
 
     /**
-    * Change settings property for auto refresh. 
+    * Change settings property for auto refresh.
     */
     var changeAutoRefresh = function (autoRefresh, callback) {
         var autoRefreshChange = {};
@@ -716,7 +776,7 @@
     };
 
     /**
-    * Change settings property for refresh interval. 
+    * Change settings property for refresh interval.
     */
     var changeRefreshInterval = function (refreshInterval, callback) {
         var refreshIntervalChange = {};
@@ -725,7 +785,7 @@
     };
 
     /**
-    * Change settings property for notifications. 
+    * Change settings property for notifications.
     */
     var changeEnableNotifications = function (enableNotifications, callback) {
         var enableNotificationsChange = {};
@@ -734,7 +794,7 @@
     };
 
     /**
-    * Remove notifications for some tracking number. 
+    * Remove notifications for some tracking number.
     */
     var removeNotifications = function (trackingNumber, callback) {
         var thisTrackingNumber = storageStrings.trackingNumbers + trackingNumber;
@@ -846,26 +906,20 @@
         });
     };
 
-    global.Common =  {
+    global.Common = {
         instanceId: instanceId,
         storageStrings: storageStrings,
         eventsStrings: eventsStrings,
         maxRequestTime: maxRequestTime,
         requestExtraTime: requestExtraTime,
-        formatDate: formatDate,
         dateNowJSON: dateNowJSON,
-        formatNoticeText: formatNoticeText,
         formatPackageData: formatPackageData,
-        getStatusOfTrackingData: getStatusOfTrackingData,
         dateDiff: dateDiff,
-        getPackage: getPackage,
         storageGet: storageGet,
         storageSet: storageSet,
-        storageRemove: storageRemove,
         storageListener: storageListener,
         setDefaultStorageValues: setDefaultStorageValues,
         setBadge: setBadge,
-        showNotifications: showNotifications,
         refreshActiveTrackingNumbers: refreshActiveTrackingNumbers,
         addNewPackage: addNewPackage,
         deleteActivePackage: deleteActivePackage,
