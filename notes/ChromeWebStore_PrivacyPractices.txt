@@ -1,0 +1,20 @@
+Single purpose description:
+Tracking shipment inside Macedonia using posta.com.mk API. The tracking number used for tracking is provided by the store/shop (example AliExpress).
+
+Storage justification:
+The shipment tracking numbers provided by the user are saved in the storage. These shipment tracking numbers are used for posta.com.mk API (to get the shipment status from that API).
+
+contextMenus justification:
+ConextMenu is used so the user can easily copy some tracking number received from from some store/shop (example AliExpress).
+
+notifications justification:
+The posta.com.mk API is called from the background to update the automatically the shipment info. When there is something new in the info, notifications are used.
+
+activeTab justification:
+ActiveTab is used to show an alert if the user tries to select some tracking number that isn't valid.
+
+Host permission justification:
+This extension is dependent from third party API, posta.com.mk. Because of that, that API domain needed to be mentioned in the manifest.
+
+Are you using remote code?
+No, I am not using remote code

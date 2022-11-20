@@ -2,7 +2,7 @@
     "name": "Следи Пратки (Sledi Pratki)",
     "short_name": "Следи Пратки",
     "description": "Следи пратки во Македонија со помош на сервисот на А.Д. Македонска Пошта (Shipment Tracking in Macedonia)",
-    "version": "1.2.1",
+    "version": "1.2.3",
     "manifest_version": 2,
     "author": "Meto Trajkovski",
 
@@ -34,12 +34,12 @@
     },
 
     "permissions": [
-        "https://www.posta.com.mk/tnt/api/query?id=*",
+        "https://www.posta.com.mk/api/api.php/shipment?code=*",
         "storage",
         "contextMenus",
         "notifications",
         "activeTab"
     ],
-    
+
     "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
 }

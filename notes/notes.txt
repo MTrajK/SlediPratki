@@ -1,0 +1,54 @@
+Migrate manifest V2 to V3
+https://developer.chrome.com/docs/extensions/mv3/mv3-migration-checklist/
+
+---------------------------------------------
+
+Posta.com.mk API
+
+New URL: https://www.posta.com.mk/Tracking/index.html
+
+
+new API: https://www.posta.com.mk/api/api.php/shipment?code=
+example - https://www.posta.com.mk/api/api.php/shipment?code=UB589844375LV
+
+new JSON response:
+[
+    {
+        "NR_R_DERGESES": "UB589844375LV",
+        "EMRI": "Skopje IO",
+        "POSTA_FILLIM": "1003",
+        "POSTA_FUND": "1050",
+        "DATA_PERPUNIMIT": "08-NOV-22",
+        "BRZAKL": "176",
+        "LLOJIZAKL": "R",
+        "BROTPR": "1",
+        "DATUM_DOSTAVUVAWE": null,
+        "ZABELESKA": "Vo Posta"
+    },
+    {
+        "NR_R_DERGESES": "UB589844375LV",
+        "EMRI": "Skopje - Dra~evo",
+        "POSTA_FILLIM": "1050",
+        "POSTA_FUND": "Dostava",
+        "DATA_PERPUNIMIT": "09-NOV-22",
+        "BRZAKL": "21",
+        "LLOJIZAKL": null,
+        "BROTPR": null,
+        "DATUM_DOSTAVUVAWE": "09-NOV-22",
+        "ZABELESKA": "Ispora~ana"
+    }
+]
+One line json '[    {        "NR_R_DERGESES": "UB589844375LV",        "EMRI": "Skopje IO",        "POSTA_FILLIM": "1003",        "POSTA_FUND": "1050",        "DATA_PERPUNIMIT": "08-NOV-22",        "BRZAKL": "176",        "LLOJIZAKL": "R",        "BROTPR": "1",        "DATUM_DOSTAVUVAWE": null,        "ZABELESKA": "Vo Posta"    },    {        "NR_R_DERGESES": "UB589844375LV",        "EMRI": "Skopje - Dra~evo",        "POSTA_FILLIM": "1050",        "POSTA_FUND": "Dostava",        "DATA_PERPUNIMIT": "09-NOV-22",        "BRZAKL": "21",        "LLOJIZAKL": null,        "BROTPR": null,        "DATUM_DOSTAVUVAWE": "09-NOV-22",        "ZABELESKA": "Ispora~ana"    }]';
+
+
+Old API: https://www.posta.com.mk/tnt/api/query?id=
+Old XML result:
+<ArrayOfTrackingData>
+	<TrackingData>
+		<ID>UN232716818CN</ID>
+		<Begining>Skopje IO 1003</Begining>
+		<End>1020</End>
+		<Date>11/5/2018, 1:33:10 PM</Date>
+		<Notice>Vo Posta</Notice>
+	</TrackingData>
+</ArrayOfTrackingData>
