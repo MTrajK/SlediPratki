@@ -170,33 +170,23 @@
     *        </TrackingData>
     *    </ArrayOfTrackingData>
     */
-    var convertApiResultToList = function (jsonResult) {
-        var result = [];
-        var parsedResult = [];
-        var length = 0;
-
-        try {
-            parsedResult = JSON.parse(jsonResult);
-
-            if (Array.isArray(parsedResult)) {
-                length = parsedResult.length;
-            }
-        }
-        catch (e) { }
+    var convertApiResultToList = function (apiResult) {
+        var convertedResult = [];
+        var length = apiResult.length;
 
         // the old xml API had these 4 tags: Begining, End, Date, Notice
         // the new json API has these keys:
-        // - EMRI, POSTA_FILLIM (this combination is equal to the old Begining tag),
+        // - EMRI, POSTA_FILLIM (this combination is equal to the old Begining tag)
         // - POSTA_FUND (equal to the old End tag)
         // - DATA_PERPUNIMIT (equal to the Date tag)
         // - ZABELESKA (equal to the old Notice tag)
         for (var i = 0; i < length; i++) {
-            var beginning = getStringValue(parsedResult[i]["EMRI"]) + " " + getStringValue(parsedResult[i]["POSTA_FILLIM"]);
-            var end = getStringValue(parsedResult[i]["POSTA_FUND"]);
-            var date = getStringValue(parsedResult[i]["DATA_PERPUNIMIT"]);
-            var notice = getStringValue(parsedResult[i]["ZABELESKA"]);
+            var beginning = getStringValue(apiResult[i]["EMRI"]) + " " + getStringValue(apiResult[i]["POSTA_FILLIM"]);
+            var end = getStringValue(apiResult[i]["POSTA_FUND"]);
+            var date = getStringValue(apiResult[i]["DATA_PERPUNIMIT"]);
+            var notice = getStringValue(apiResult[i]["ZABELESKA"]);
 
-            result.push({
+            convertedResult.push({
                 beginning: beginning,
                 end: end,
                 date: date,
@@ -205,7 +195,7 @@
         }
 
         // returns list of tracking data
-        return result;
+        return convertedResult;
     };
 
     /**
